@@ -57,9 +57,11 @@ def login():
     cursor = connection.cursor()
     username= input("masukkan username ")
     passw= passbintang("masukkan password ")
-
-    cursor.execute("SELECT * FROM pengguna")
-    records = cursor.fetchall()
+    try :
+        cursor.execute("SELECT * FROM pengguna")
+        records = cursor.fetchall()
+    except psycopg2.Error as Error:
+        print("Salah")
     index = None
     for index,row in enumerate(records):
         if username == row[3] and passw == row[4]:
@@ -138,22 +140,72 @@ def ChangeAkunAll():
     if count != 0:
         cursor.execute(query)
         cursor.connection.commit()
+        clear()
         print(f"{count} data berhasil diubah...")
+        getch()
     else:
         clear()
         print("Data tidak jadi diubah")
         getch()
 
+def ChangeAkunSelf(id_):
+    cursor = connect()
+    cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
+    records = cursor.fetchone()
+    # print(records)
+    query = "Update pengguna Set "
+    nama = input("Masukkan nama baru, kosongkan jika sama ")
+    count = 0
+    if not nama == "":
+        query = query + f" nama_lengkap = '{nama}'"
+        count += 1
+    username = input ("Masukkan username baru, kosongkan jika sama ")
+    if not username == "":
+        if not count == 0:
+            query = query + ","
+        query = query + f" username = '{username}'"
+        count += 1
+    password = input("Masukkan password baru, kosongkan jika sama ")
+    if not password == "":
+        if not count == 0:
+            query = query + ","
+        query = query + f" passwords = '{password}'"
+        count += 1
+    no = input("Masukkan nomer telepon baru, kosongkan jika sama ")
+    if not no == "":
+        if not count == 0:
+            query = query + ","
+        count += 1
+        query = query + f" no_telpon = '{no}'"
+    email = input("Masukkan email baru, kosongkan jika sama ")
+    if not email == "":
+        if not count == 0:
+            query = query + ","
+        count += 1
+        query = query + f" email = '{email}'"
+    query = query + f" WHERE id_pengguna = {records[0]}"
+    if count != 0:
+        cursor.execute(query)
+        cursor.connection.commit()
+        clear()
+        print(f"{count} data berhasil diubah...")
+        getch()
+    else:
+        clear()
+        print("Data tidak jadi diubah")
+        getch()
 
 ################################################################
 
 login_status= 0
+clear()
 
 while True:
     print("""Menu :
 1. Registrasi
 2. Login
-3. Show Tabel""")
+3. Show Tabel
+0. Keluar""")
     pilihanmenu= inputint("Masukkan menu yang ingin dipilih: ")
     if pilihanmenu == 1:
         clear()
@@ -163,7 +215,8 @@ while True:
         data_user = login()
         print(data_user)
         getch()
-        login_status = 1
+        if not data_user is None:
+            login_status = 1
         clear()
         break
     elif pilihanmenu == 3 :
@@ -179,9 +232,13 @@ try:
     if login_status == 1 and data_user[1] is False: # Menu penjual
         clear()
         MenuUtama()
-        temp = inputint("Masukkan menu yang diinginkan")
+        temp = inputint("Masukkan menu yang diinginkan ")
         if temp == 1:
+            clear()
             ShowAkun()
+            temp = input("Tekan enter untuk keluar atau masukkan sembarang huruf untuk mengedit ")
+            if temp != "":
+                ChangeAkunSelf(data_user[0])
         elif temp == 2:
             pass
         elif temp == 3 :
@@ -208,11 +265,21 @@ try:
             elif temp == 2:
                 clear()
                 ShowAkun()
+                temp = input("Tekan enter untuk keluar atau masukkan sembarang huruf untuk mengedit ")
+                if temp != "":
+                    ChangeAkunSelf(data_user[0])
     
 except :
     # print('Error, Silahkan kontak admin(Error 001)')
     print(Error)
+    print("Error 123")
+
+
+# if connection:
+#     cursor.close()
+#     connection.close()
+
+
 
 # showtable("pengguna")
-
 # ChangeAkunAll()
