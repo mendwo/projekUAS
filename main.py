@@ -24,24 +24,30 @@ def showtable(entity):
 def regis():
     while True:
         try:
-            username = input("Masukkan username dengan jumlah 4-16 karakter ")
+            username = input("Masukkan username dengan jumlah 4-16 karakter (kosongkan untuk keluar) ")
+            if username == "":
+                clear()
+                break
             passw = passbintang("Masukkan password dengan jumlah 4-16 karakter ")
             if len(username) <= 16 and len(username) >= 4 and  len(passw) <= 16 and len(passw) >= 4 :
                 nama= input("Masukkan nama lengkap anda ")
                 telp= input("Masukkan nomer telepon anda ")
                 email= input ("Masukkan email anda ")
                 cursor = connect()
-                cursor.execute("INSERT INTO pengguna(is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (True,%s, %s,%s,%s,%s,False)", (nama,username, passw,telp,email))
+                cursor.execute("INSERT INTO pengguna(is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (False,%s, %s,%s,%s,%s,False)", (nama,username, passw,telp,email))
                 cursor.connection.commit()
+                clear()
+                print("Berhasil registrasi")
+                getch()
+                clear()
                 break
             else:
-                print("jumlah karakter username atau password tidak memenuhi syarat")
+                print("jumlah karakter username atau password tidak memenuhi syarat...")
+                getch()
         except (Exception,Error) as error:
             print(error)
 
 def login():
-    print("test")
-
     connection = psycopg2.connect(
     user="postgres",
     password="123",
@@ -94,10 +100,10 @@ def ShowAkunAll():
 def ChangeAkunAll():
     cursor = connect()
     showtable("pengguna")
-    id_= input("Masukkan id yg ingin diubah")
+    id_= inputint("Masukkan id yg ingin diubah ")
     cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
     records = cursor.fetchone()
-    print(records)
+    # print(records)
     query = "Update pengguna Set "
     nama = input("Masukkan nama baru, kosongkan jika sama ")
     count = 0
@@ -129,12 +135,19 @@ def ChangeAkunAll():
         count += 1
         query = query + f" email = '{email}'"
     query = query + f" WHERE id_pengguna = {records[0]}"
-    cursor.execute(query)
-    cursor.connection.commit()
-    print("Data berhasil diubah...")
+    if count != 0:
+        cursor.execute(query)
+        cursor.connection.commit()
+        print(f"{count} data berhasil diubah...")
+    else:
+        clear()
+        print("Data tidak jadi diubah")
+        getch()
 
 
 ################################################################
+
+login_status= 0
 
 while True:
     print("""Menu :
@@ -150,6 +163,7 @@ while True:
         data_user = login()
         print(data_user)
         getch()
+        login_status = 1
         clear()
         break
     elif pilihanmenu == 3 :
@@ -157,12 +171,12 @@ while True:
         temp= input("Masukkan tabel yang ingin ditampilkan ")
         showtable(temp)
         getch()
-        # clear()
+        clear()
     elif pilihanmenu == 0:
         exit()
 
 try:
-    if data_user[1] is False: # Menu penjual
+    if login_status == 1 and data_user[1] is False: # Menu penjual
         clear()
         MenuUtama()
         temp = inputint("Masukkan menu yang diinginkan")
@@ -175,7 +189,7 @@ try:
         elif temp == 4 :
             exit
 
-    elif data_user[1] is True: # Menu admin
+    elif login_status == 1 and data_user[1] is True: # Menu admin
         clear()
         MenuUtamaAdmin()
         temp =inputint("Masukkan angka ")
@@ -185,15 +199,19 @@ try:
             temp = inputint("Masukkan angka ")
             if temp == 1:
                 ShowAkunAll()
-                temp= inputint("Enter jika ingin keluar,isi dengan apa saja jika ingin mengedit")
-                if temp == "\n":
+                temp= input("Enter jika ingin keluar,isi dengan angka apa saja jika ingin mengedit ")
+                clear()
+                if temp == "":
                     pass
                 else :
                     ChangeAkunAll()
-
+            elif temp == 2:
+                clear()
+                ShowAkun()
     
 except :
-    print('Error, Silahkan kontak admin(Error 001)')
+    # print('Error, Silahkan kontak admin(Error 001)')
+    print(Error)
 
 # showtable("pengguna")
 
