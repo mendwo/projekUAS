@@ -16,12 +16,48 @@ def connect():
     return cursor
 
 def showtable(entity):
-    if not 'cursor' in locals() or globals(): # may not work/needed
-        cursor = connect()
-    cursor.execute(f"SELECT * FROM {entity}")
+    querydefault = f"SELECT * FROM {entity}"
+    ordercount = 0
+    query = querydefault
+    orderlist = []
+    orderlistasc = []
+    while True:
+        print("query= ", query)
+        if not 'cursor' in locals() and globals(): # may not work/needed
+            cursor = connect()
+        cursor.execute(query)
 
-    mytable = from_db_cursor(cursor)
-    print(mytable)
+        mytable = from_db_cursor(cursor)
+        print(mytable)
+        query = querydefault
+        temp = input("Masukkan opsi (join, where, group, having, order)")
+        if temp == "":
+            break
+        elif temp == "join":
+            pass
+        elif temp == "where":
+            pass
+        elif temp == "group":
+            pass
+        elif temp == "having":
+            pass
+        elif temp == "order":
+            ordercount += 1
+            order= input("Masukkan order by kolom apa ")
+            orderlist.append(order)
+            asc = input("Enter jika asc")
+            orderlistasc.append(asc)
+            for x in range(ordercount):
+                if x == 0 :
+                    query = query + f" ORDER BY {orderlist[x]}"
+                else:
+                    query = query + f", {orderlist[x]}"
+                if orderlistasc[x] == "":
+                    query = query + " asc"
+                else:
+                    query = query + " desc"
+
+
 
 def regis():
     while True:
@@ -98,8 +134,9 @@ def ShowAkun():
     print("Email: ",data_user[6])
 
 def ShowAkunAll():
-    cursor= connect()
-    cursor.execute("SELECT * FROM pengguna")
+    # cursor= connect()
+    # cursor.execute("SELECT * FROM pengguna")
+    showtable("pengguna")
 
 def ChangeAkunAll():
     cursor = connect()
@@ -225,7 +262,7 @@ while True:
         clear()
         temp= input("Masukkan tabel yang ingin ditampilkan ")
         showtable(temp)
-        getch()
+        # getch()
         clear()
     elif pilihanmenu == 0:
         exit()
