@@ -36,3 +36,62 @@ def inputint(comment):
 
 def clear():
     os.system('cls')
+
+def select(text):
+    textt = text.splitlines()
+    # print(textt)
+    target = 0
+
+    i = 0
+    for x in textt:
+        if i == target:
+            print (" O ",end = "")
+        else:
+            print("   ",end="")
+        i += 1
+        print (x)
+
+    while True:
+        i= 0
+        listt = []
+        c = ""
+        while len(listt) < 2:
+            c = getch()
+            listt.append(ord(c))
+            if ord(c) != 224:
+                listt.append(ord(c))
+                break
+            # print (ord(c))
+        os.system('cls')
+        # print (listt)
+    # temp = []
+    # c = getch()
+    # temp.append(c)
+    # print (temp)
+    # if 
+
+
+        if listt[1] == 80:
+            target += 1
+            # print("kebawah")
+        elif listt[1] == 72:
+            target -= 1
+            # print("keatas")
+        elif listt[1] == 13 or listt[1] == 27:
+            break
+
+        if target == len(textt):
+            target = 0
+        elif target == -1:
+            target = len(textt)-1
+
+        for x in textt:
+            if i == target:
+                print (" O ",end = "")
+            else:
+                print("   ",end="")
+            i += 1
+            print (x)
+        # print (target)
+        # print (type(c))
+    return target+1

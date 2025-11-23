@@ -21,8 +21,8 @@ def showtable(entity):
     query = querydefault
     orderlist = []
     orderlistasc = []
-    offset = 0
-    limit = f" limit 10 "
+    # offset = 0
+    # limit = f" limit 10 "
     while True:
         # print("query= ", query)
         if not 'cursor' in locals() and globals(): # may not work/needed
@@ -38,7 +38,7 @@ def showtable(entity):
             for y in record:
                 mytable.add_row(y)
             print(mytable)
-            temp = input("Masukkan opsi (join, where, group, having, order, enter untuk next page) ")
+            temp = input("Masukkan opsi (join, where, group, having, order,)\n(enter untuk next page,isi sembarang untuk skip) ")
             if temp != "":
                 break
             else:
@@ -84,9 +84,23 @@ def regis():
                 break
             passw = passbintang("Masukkan password dengan jumlah 4-16 karakter ")
             if len(username) <= 16 and len(username) >= 4 and  len(passw) <= 16 and len(passw) >= 4 :
-                nama= input("Masukkan nama lengkap anda ")
-                telp= input("Masukkan nomer telepon anda ")
-                email= input ("Masukkan email anda ")
+                inputvalid = 0
+                while inputvalid < 3 : # Data diri dan check input
+                    inputvalid = 0
+                    nama= input("Masukkan nama lengkap anda ")
+                    if nama and all(c.isalpha() or c.isspace() for c in nama):
+                        inputvalid +=1
+                    telp= input("Masukkan nomer telepon anda ")
+                    if telp and all(c.isdigit() or c in "+-" for c in telp):
+                        inputvalid += 1
+                    email= input ("Masukkan email anda ")
+                    if email and "@" in email and "." in email:
+                        inputvalid += 1
+                    if inputvalid < 3 : 
+                        print ("Masukkan data yang valid")
+                        clear()
+                    else:
+                        break
                 cursor = connect()
                 cursor.execute("INSERT INTO pengguna(is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (False,%s, %s,%s,%s,%s,False)", (nama,username, passw,telp,email))
                 cursor.connection.commit()
@@ -256,12 +270,13 @@ login_status= 0
 clear()
 
 while True:
-    print("""Menu :
-1. Registrasi
-2. Login
-3. Show Tabel
-0. Keluar""")
-    pilihanmenu= inputint("Masukkan menu yang ingin dipilih: ")
+#     print("""Menu :
+# 1. Registrasi
+# 2. Login
+# 3. Show Tabel
+# 0. Keluar""")
+    # pilihanmenu= inputint("Masukkan menu yang ingin dipilih: ")
+    pilihanmenu = select("Registrasi \nLogin \nShow tabel \nKeluar")
     if pilihanmenu == 1:
         clear()
         regis()
@@ -280,7 +295,7 @@ while True:
         showtable(temp)
         # getch()
         clear()
-    elif pilihanmenu == 0:
+    elif pilihanmenu == 4 or pilihanmenu== 0:
         exit()
 
 while login_status == 1:
