@@ -5,6 +5,7 @@ from macro import *
 
 ### Note : Sisa fitur sedang menunggu konfirmasi benar atau tidak. Daripada kerja dua kali
 ### Test123
+## Test lagi
 
 def connect():
     connection = psycopg2.connect(
