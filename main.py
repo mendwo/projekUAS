@@ -6,7 +6,7 @@ from macro import *
 ### Note : Sisa fitur sedang menunggu konfirmasi benar atau tidak. Daripada kerja dua kali
 ### Test123
 ## Test lagi
-
+# dyo jago coding
 def connect():
     connection = psycopg2.connect(
     user="postgres",
