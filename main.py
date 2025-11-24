@@ -11,7 +11,7 @@ def connect():
     password="123",
     host = "127.0.0.1",
     port = "5432",
-    database="Projek")
+    database="Projek 2")
     cursor = connection.cursor()
     return cursor
 
@@ -27,7 +27,7 @@ def showtable(entity):
         # print("query= ", query)
         if not 'cursor' in locals() and globals(): # may not work/needed
             cursor = connect()
-        cursor.execute("Select count(*) from pengguna")
+        cursor.execute(f"Select count(*) from {entity}")
         jumlah = cursor.fetchone()
         cursor.execute(query)
         for x in range((jumlah[0]//5)+1):
@@ -73,7 +73,25 @@ def showtable(entity):
         else:
             break
 
-
+def Showtablewithout(entity):
+    query = f"SELECT * FROM {entity}"
+    # offset = 0
+    # limit = f" limit 10 "
+    while True:
+        # print("query= ", query)
+        if not 'cursor' in locals() and globals(): # may not work/needed
+            cursor = connect()
+        cursor.execute(f"Select count(*) from {entity}")
+        jumlah = cursor.fetchone()
+        cursor.execute(query)
+        for x in range((jumlah[0]//5)+1):
+            print("Halaman ke ",x+1)
+            record = cursor.fetchmany(5)
+            columns = [x[0] for x in cursor.description]
+            mytable = PrettyTable(columns)
+            for y in record:
+                mytable.add_row(y)
+            print(mytable)
 
 def regis():
     while True:
@@ -121,7 +139,7 @@ def login():
     password="123",
     host = "127.0.0.1",
     port = "5432",
-    database="Projek")
+    database="Projek 2")
     cursor = connection.cursor()
     username= input("masukkan username ")
     passw= passbintang("masukkan password ")
@@ -151,9 +169,9 @@ def MenuUtamaAdmin():
     print("""
 1. Data akun (melihat mengedit akun admin, melihat akun pengguna)
 2. Katalog menu (melihat,mengedit)
-4. Status pesanan (melihat,mengedit status)
-5. Laporan penjualan (melihat,menambah)
-6. Log out / keluar
+3. Status pesanan (melihat,mengedit status)
+4. Laporan penjualan (melihat,menambah)
+5. Log out / keluar
 """)
 
 def ShowAkun():
@@ -218,6 +236,7 @@ def ChangeAkunAll():
         getch()
 
 def ChangeAkunSelf(id_):
+
     cursor = connect()
     cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
     records = cursor.fetchone()
@@ -264,6 +283,32 @@ def ChangeAkunSelf(id_):
         print("Data tidak jadi diubah")
         getch()
 
+def BuatPesanan(id):
+    Showtablewithout('katalog')
+    katalog = input("Masukkan id barang yang ingin dibeli")
+    jalan = input ("Masukkan nama jalan tujuan")
+    kecamatan = input ("Masukkan nama kecamtan tujuan")
+    kabupaten = input("Masukkan nama kabupaten tujuan")
+    jumlah = input("Masukkan jumlah barang yan ingin dibeli")
+    cursor = connect()
+    cursor.execute("SELECT nama_kabupaten from kabupaten")
+    record = cursor.fetchall()
+    if any(jalan.lower() == x.lower() for x in record[0]):
+        pass
+    else:
+        cursor.execute(f"INSERT INTO kabupaten(nama_kabupaten) Values({kabupaten})")
+    
+
+
+def StatusPesanan():
+    pass
+
+def Katalog():
+    pass
+
+def Laporan():
+    pass
+
 ################################################################
 
 login_status= 0
@@ -284,11 +329,13 @@ while True:
         clear()
         data_user = login()
         print(data_user)
-        getch()
         if not data_user is None:
             login_status = 1
+            clear()
+            break
+        print("Username atau passsword salah")
+        getch()
         clear()
-        break
     elif pilihanmenu == 3 :
         clear()
         temp= input("Masukkan tabel yang ingin ditampilkan ")
@@ -311,15 +358,17 @@ while login_status == 1:
                 if temp != "":
                     ChangeAkunSelf(data_user[0])
             elif temp == 2:
-                pass
+                BuatPesanan(data_user[0])
             elif temp == 3 :
-                pass
+                StatusPesanan()
             elif temp == 4 :
                 clear()
                 temp = input("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
                 if temp == "y":
                     login_status = 0
 
+##################################################################################
+        
         elif data_user[1] is True: # Menu admin
             clear()
             MenuUtamaAdmin()
@@ -343,14 +392,12 @@ while login_status == 1:
                     if temp != "":
                         ChangeAkunSelf(data_user[0])
             elif temp == 2:
-                pass
+                Katalog()
             elif temp == 3 :
-                pass
+                StatusPesanan()
             elif temp == 4 :
-                pass
+                Laporan()
             elif temp == 5 :
-                pass
-            elif temp == 6 :
                 clear()
                 temp = input("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
                 if temp == "y":
@@ -368,5 +415,5 @@ while login_status == 1:
 
 
 
-showtable("pengguna")
+# showtable("pengguna")
 # # ChangeAkunAll()
