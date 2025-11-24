@@ -2,20 +2,12 @@ import psycopg2
 from psycopg2 import Error, sql
 from prettytable import from_db_cursor, PrettyTable
 from macro import *
+from connectsql import *
 
 ### Note : Sisa fitur sedang menunggu konfirmasi benar atau tidak. Daripada kerja dua kali
 ### Test123
 ## Test lagi
 # dyo jago coding
-def connect():
-    connection = psycopg2.connect(
-    user="postgres",
-    password="123",
-    host = "127.0.0.1",
-    port = "5432",
-    database="Projek 2")
-    cursor = connection.cursor()
-    return cursor
 
 def showtable(entity):
     querydefault = f"SELECT * FROM {entity}"
@@ -79,21 +71,22 @@ def Showtablewithout(entity):
     query = f"SELECT * FROM {entity}"
     # offset = 0
     # limit = f" limit 10 "
-    while True:
-        # print("query= ", query)
-        if not 'cursor' in locals() and globals(): # may not work/needed
-            cursor = connect()
-        cursor.execute(f"Select count(*) from {entity}")
-        jumlah = cursor.fetchone()
-        cursor.execute(query)
-        for x in range((jumlah[0]//5)+1):
-            print("Halaman ke ",x+1)
-            record = cursor.fetchmany(5)
-            columns = [x[0] for x in cursor.description]
-            mytable = PrettyTable(columns)
-            for y in record:
-                mytable.add_row(y)
-            print(mytable)
+    
+    # print("query= ", query)
+    if not 'cursor' in locals() and globals(): # may not work/needed
+        cursor = connect()
+    cursor.execute(f"Select count(*) from {entity}")
+    jumlah = cursor.fetchone()
+    cursor.execute(query)
+    for x in range((jumlah[0]//5)+1):
+        print("Halaman ke ",x+1)
+        record = cursor.fetchmany(5)
+        columns = [x[0] for x in cursor.description]
+        mytable = PrettyTable(columns)
+        for y in record:
+            mytable.add_row(y)
+        print(mytable)
+        getch()
 
 def regis():
     while True:
@@ -136,13 +129,7 @@ def regis():
             print(error)
 
 def login():
-    connection = psycopg2.connect(
-    user="postgres",
-    password="123",
-    host = "127.0.0.1",
-    port = "5432",
-    database="Projek 2")
-    cursor = connection.cursor()
+    cursor = connect()
     username= input("masukkan username ")
     passw= passbintang("masukkan password ")
     try :
@@ -286,20 +273,87 @@ def ChangeAkunSelf(id_):
         getch()
 
 def BuatPesanan(id):
-    Showtablewithout('katalog')
-    katalog = input("Masukkan id barang yang ingin dibeli")
-    jalan = input ("Masukkan nama jalan tujuan")
-    kecamatan = input ("Masukkan nama kecamtan tujuan")
-    kabupaten = input("Masukkan nama kabupaten tujuan")
-    jumlah = input("Masukkan jumlah barang yan ingin dibeli")
-    cursor = connect()
-    cursor.execute("SELECT nama_kabupaten from kabupaten")
-    record = cursor.fetchall()
-    if any(jalan.lower() == x.lower() for x in record[0]):
-        pass
-    else:
-        cursor.execute(f"INSERT INTO kabupaten(nama_kabupaten) Values({kabupaten})")
-    
+    try:
+        Showtablewithout('katalog')
+        katalog = input("Masukkan id barang yang ingin dibeli ")
+        jalan = input ("Masukkan nama jalan tujuan ")
+        kecamatan = input ("Masukkan nama kecamatan tujuan ")
+        kabupaten = input("Masukkan nama kabupaten tujuan ")
+        jumlah = input("Masukkan jumlah barang yang ingin dibeli ")
+        cursor = connect()
+        cursor.execute("SELECT nama_kabupaten from kabupaten")
+        record = cursor.fetchall()
+        if any(kabupaten.lower() == x.lower() for x in record[0]):
+            print("1")
+            # pass
+        else:
+            print("2")
+            cursor.execute(f"INSERT INTO kabupaten(nama_kabupaten) Values('{kabupaten}')")
+            # cursor.execute(f"SELECT id_kabupaten, nama_kabupaten from kabupaten where lower(nama_kabupaten) ilike '{kabupaten}'")
+            # record = cursor.fetchone()
+            # cursor.execute(f"INSERT INTO kecamatan(nama_kecamatan,id_kabupaten) Values('{kecamatan}',{record[0]})")
+            # cursor.execute(f"SELECT id_kecamatan, nama_kecamatan from kecamatan where lower(nama_kecamatan) ilike '{kecamatan}'")
+            # record = cursor.fetchone()
+            # cursor.execute(f"INSERT INTO jalan(nama_jalan, id_kecamatan) Values('{jalan}',{cursor[0]})")
+            # cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
+            # record = cursor.fetchone()
+            # cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values({record[0]})")
+        cursor.execute("SELECT nama_kecamatan from kecamatan")
+        record = cursor.fetchall()
+        if any(kecamatan.lower() == x.lower() for x in record[0]):
+            print("3")
+            # pass
+        else:
+            print("4")
+            cursor.execute(f"SELECT id_kabupaten, nama_kabupaten from kabupaten where lower(nama_kabupaten) ilike '{kabupaten}'")
+            record = cursor.fetchone()
+            cursor.execute(f"INSERT INTO kecamatan(nama_kecamatan,id_kabupaten) Values('{kecamatan}','{record[0]}')")
+        #     cursor.execute(f"SELECT id_kecamatan, nama_kecamatan from kecamatan where lower(nama_kecamatan) ilike '{kecamatan}'")
+        #     record = cursor.fetchone()
+        #     cursor.execute(f"INSERT INTO jalan(nama_jalan, id_kecamatan) Values('{jalan}',{cursor[0]})")
+        #     cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
+        #     record = cursor.fetchone()
+        #     cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values({record[0]})")
+        cursor.execute("SELECT nama_jalan from jalan")
+        record = cursor.fetchall()
+        if any(jalan.lower() == x.lower() for x in record[0]):
+            print("5")
+            # pass
+        else:
+            print("6")
+            cursor.execute(f"SELECT id_kecamatan, nama_kecamatan from kecamatan where lower(nama_kecamatan) ilike '{kecamatan}'")
+            record = cursor.fetchone()
+            print(record)
+            cursor.execute(f"INSERT INTO jalan(nama_jalan, id_kecamatan) Values('{jalan}','{record[0]}')")
+            print("insert berhasil ")
+        #     cursor.execute(f"SELECT id_jalan, nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
+        #     record = cursor.fetchone()
+        #     print(record)
+        #     cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values('{record[0]}')")
+        cursor.execute(f"SELECT id_jalan, nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
+        record = cursor.fetchone()
+        cursor.execute("SELECT id_jalan from alamat_pengiriman")
+        record1 = cursor.fetchall()
+        if any (record[0] == x for x in record1[0]):
+            print("7")
+            # pass
+        else:
+            print("8")
+            cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
+            record = cursor.fetchone()
+            cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values('{record[0]}')")
+        # cursor.connection.commit()
+
+        cursor.execute(f"SELECT id_alamat_pengiriman, id_jalan from alamat_pengiriman where id_jalan = '{record[0]}'")
+        record = cursor.fetchone()
+        cursor.execute(f"INSERT INTO pesanan(tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES (now() :: DATE, 'diproses', now() :: DATE, '0', {id}, {record[0]})")
+        cursor.execute(f"SELECT id_pesanan, id_alamat_pengiriman from pesanan where id_alamat_pengiriman = '{record[0]}'")
+        record = cursor.fetchone()
+        cursor.execute(f"INSERT INTO detail_pesanan(jumlah_pesanan, subtotal, id_katalog, id_pesanan) VALUES ({jumlah}, 0, {katalog}, {record[0]})")
+        cursor.connection.commit()
+
+    except (Exception,Error) as error:
+        print(error)
 
 
 def StatusPesanan():
@@ -349,7 +403,7 @@ while True:
 
 while login_status == 1:
     try:
-        if data_user[1] is False: # Menu penjual
+        if data_user[1] is False: # Menu pembeli
             clear()
             MenuUtama()
             temp = inputint("Masukkan menu yang diinginkan ")
@@ -361,8 +415,10 @@ while login_status == 1:
                     ChangeAkunSelf(data_user[0])
             elif temp == 2:
                 BuatPesanan(data_user[0])
+                getch()
             elif temp == 3 :
                 StatusPesanan()
+                getch()
             elif temp == 4 :
                 clear()
                 temp = input("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
