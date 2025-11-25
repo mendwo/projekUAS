@@ -146,14 +146,6 @@ def login():
     if index is None:
         print("Salah")
 
-def MenuUtamaAdmin():
-    print("""
-1. Data akun (melihat mengedit akun admin, melihat akun pengguna)
-2. Katalog menu (melihat,mengedit)
-3. Status pesanan (melihat,mengedit status)
-4. Laporan penjualan (melihat,menambah)
-5. Log out / keluar
-""")
 
 def ShowAkun():
     print("Nama: ",data_user[2])
@@ -309,12 +301,26 @@ def HapusPesanan(id):
 def BuatPesanan(id):
     try:
         Showtablewithout('katalog')
-        katalog = input("Masukkan id barang yang ingin dibeli ")
+        cursor = connect()
+        while True:
+            katalog = inputint("Masukkan id barang yang ingin dibeli ")
+            cursor.execute("SELECT id_katalog, stok_menu, soft_delete from katalog where stok > 0 and soft_delete = 0")
+            record = cursor.fetchall()
+            if any(katalog == x for x in record[0]):
+                break
+            else:
+                print("Masukkan id katalog yang benar")
         jalan = input ("Masukkan nama jalan tujuan ")
         kecamatan = input ("Masukkan nama kecamatan tujuan ")
         kabupaten = input("Masukkan nama kabupaten tujuan ")
-        jumlah = input("Masukkan jumlah barang yang ingin dibeli ")
-        cursor = connect()
+        while True:
+            jumlah = inputint("Masukkan jumlah barang yang ingin dibeli ")
+            cursor.execute(f"SELECT id_katalog,stok_menu from katalog where id_katalog = '{katalog}'")
+            record = cursor.fetchall()
+            if jumlah <= record[1] and jumlah > 0:
+                break
+            else:
+                print("Masukkan jumlah yang benar")
         cursor.execute("SELECT nama_kabupaten from kabupaten")
         record = cursor.fetchall()
         if any(kabupaten.lower() == x.lower() for x in record[0]):
@@ -472,7 +478,13 @@ while login_status == 1:
         
         elif data_user[1] is True: # Menu admin
             clear()
-            MenuUtamaAdmin()
+            print("""
+1. Data akun (melihat mengedit akun admin, melihat akun pengguna)
+2. Katalog menu (melihat,mengedit)
+3. Status pesanan (melihat,mengedit status)
+4. Laporan penjualan (melihat,menambah)
+5. Log out / keluar
+""")
             temp =inputint("Masukkan angka ")
             if temp == 1:
                 print("1. Data user\n" 
