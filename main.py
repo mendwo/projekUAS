@@ -5,16 +5,6 @@ from macro import *
 from connectsql import *
 
 ### Note : Sisa fitur sedang menunggu konfirmasi benar atau tidak. Daripada kerja dua kali
-# gahgaj
-def connect():
-    connection = psycopg2.connect(
-    user="postgres",
-    password="123",
-    host = "127.0.0.1",
-    port = "5432",
-    database="Projek")
-    cursor = connection.cursor()
-    return cursor
 
 def showtable(entity):
     querydefault = f"SELECT * FROM {entity}"
