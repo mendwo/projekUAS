@@ -4,7 +4,7 @@ from prettytable import from_db_cursor, PrettyTable
 from macro import *
 
 ### Note : Sisa fitur sedang menunggu konfirmasi benar atau tidak. Daripada kerja dua kali
-
+#jbjbuhjk
 def connect():
     connection = psycopg2.connect(
     user="postgres",
