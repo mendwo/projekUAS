@@ -5,7 +5,7 @@ from macro import *
 from connectsql import *
 
 ### Note : Sisa fitur sedang menunggu konfirmasi benar atau tidak. Daripada kerja dua kali
-
+# gahgaj
 def connect():
     connection = psycopg2.connect(
     user="postgres",
