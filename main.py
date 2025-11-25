@@ -146,14 +146,6 @@ def login():
     if index is None:
         print("Salah")
 
-def MenuUtama():
-    print("""
-1. Data akun (melihat dan mengedit)
-2. Membuat Pesanan
-3. Status pesanan (melihat dan )
-4. Log out / keluar
-""")
-
 def MenuUtamaAdmin():
     print("""
 1. Data akun (melihat mengedit akun admin, melihat akun pengguna)
@@ -271,6 +263,48 @@ def ChangeAkunSelf(id_):
         clear()
         print("Data tidak jadi diubah")
         getch()
+
+def TampilkanPesanan(id,mode=1):
+    try:
+        cursor = connect()
+        # cursor.execute(f"SELECT p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman FROM pesanan p where is_delete = '0' and id_pengguna = '{id}'")
+        if mode == 1:
+            cursor.execute(f"SELECT p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman, j.nama_jalan || ' ' || k.nama_kecamatan || ' ' || ka.nama_kabupaten AS Alamat FROM pesanan p, jalan j, kecamatan k, kabupaten ka, alamat_pengiriman a where is_delete = '0' and id_pengguna = '{id}' and p.id_alamat_pengiriman = a.id_alamat_pengiriman and a.id_jalan = j.id_jalan and j.id_kecamatan = k.id_kecamatan and k.id_kabupaten = ka.id_kabupaten")
+        else:
+            cursor.execute(f"SELECT p.id_pesanan, p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman, j.nama_jalan || ' ' || k.nama_kecamatan || ' ' || ka.nama_kabupaten AS Alamat FROM pesanan p, jalan j, kecamatan k, kabupaten ka, alamat_pengiriman a where is_delete = '0' and id_pengguna = '{id}' and p.id_alamat_pengiriman = a.id_alamat_pengiriman and a.id_jalan = j.id_jalan and j.id_kecamatan = k.id_kecamatan and k.id_kabupaten = ka.id_kabupaten")
+        record = cursor.fetchall()
+        print("test")
+        columns = [x[0] for x in cursor.description]
+        mytable = PrettyTable(columns)
+        for y in record:
+            mytable.add_row(y)
+        print(mytable)
+
+    except (Exception,Error) as error:
+        print(error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
+            
+def HapusPesanan(id):
+    try:
+        TampilkanPesanan(id,2)
+        tujuan = input("Masukkan id yang ingin dihapus ")
+        cursor = connect()
+        cursor.execute(f"UPDATE pesanan SET is_delete = '1' WHERE id_pesanan = {tujuan}")
+        cursor.connection.commit()
+        print("Data berhasil dihapus")
+
+    except (Exception,Error) as error:
+        print(error)
+
+    finally:
+        if cursor.connection:
+            cursor.close()
+            cursor.connection.close()
+
 
 def BuatPesanan(id):
     try:
@@ -395,7 +429,8 @@ while True:
     elif pilihanmenu == 3 :
         clear()
         temp= input("Masukkan tabel yang ingin ditampilkan ")
-        showtable(temp)
+        if not temp == "":
+            showtable(temp)
         # getch()
         clear()
     elif pilihanmenu == 4 or pilihanmenu== 0:
@@ -405,7 +440,12 @@ while login_status == 1:
     try:
         if data_user[1] is False: # Menu pembeli
             clear()
-            MenuUtama()
+            print("""
+1. Data akun (melihat dan mengedit)
+2. Membuat Pesanan
+3. Status pesanan (melihat dan menghapus)
+4. Log out / keluar
+""")
             temp = inputint("Masukkan menu yang diinginkan ")
             if temp == 1:
                 clear()
@@ -417,8 +457,11 @@ while login_status == 1:
                 BuatPesanan(data_user[0])
                 getch()
             elif temp == 3 :
-                StatusPesanan()
-                getch()
+                TampilkanPesanan(data_user[0])
+                pilihan = input("Enter jika lanjut, masukkan sembarang huruf jika ingin menghapus data")
+                if not pilihan == "":
+                    clear()
+                    HapusPesanan(data_user[0])
             elif temp == 4 :
                 clear()
                 temp = input("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
