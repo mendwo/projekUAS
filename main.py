@@ -21,7 +21,11 @@ def showtable(entity):
         cursor.execute(f"Select count(*) from {entity}")
         jumlah = cursor.fetchone()
         cursor.execute(query)
-        for x in range((jumlah[0]//5)+1):
+        if jumlah[0] % 5 == 0:
+            page = jumlah[0]//5
+        else:
+            page = jumlah[0]//5+1
+        for x in range(page):
             print("Halaman ke ",x+1)
             record = cursor.fetchmany(5)
             columns = [x[0] for x in cursor.description]
@@ -75,7 +79,11 @@ def Showtablewithout(entity):
     cursor.execute(f"Select count(*) from {entity}")
     jumlah = cursor.fetchone()
     cursor.execute(query)
-    for x in range((jumlah[0]//5)+1):
+    if jumlah[0] % 5 == 0:
+        page = jumlah[0]//5
+    else:
+        page = jumlah[0]//5+1
+    for x in range(page):
         print("Halaman ke ",x+1)
         record = cursor.fetchmany(5)
         columns = [x[0] for x in cursor.description]
@@ -112,7 +120,10 @@ def regis():
                     else:
                         break
                 cursor = connect()
-                cursor.execute("INSERT INTO pengguna(is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (False,%s, %s,%s,%s,%s,False)", (nama,username, passw,telp,email))
+                cursor.execute("SELECT id_pengguna from pengguna ORDER BY id_pengguna desc")
+                record = cursor.fetchone()
+                id = record[0] + 1
+                cursor.execute("INSERT INTO pengguna(id_pengguna,is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (%s,False,%s, %s,%s,%s,%s,False)", (id,nama,username, passw,telp,email))
                 cursor.connection.commit()
                 clear()
                 print("Berhasil registrasi")
@@ -299,11 +310,17 @@ def BuatPesanan(id):
     try:
         Showtablewithout('katalog')
         cursor = connect()
+        cursor.execute("SELECT id_pesanan from pesanan ORDER BY id_pesanan desc")
+        record = cursor.fetchone()
+        id_pesanan = record[0] + 1
         while True:
             katalog = inputint("Masukkan id barang yang ingin dibeli ")
-            cursor.execute("SELECT id_katalog, stok_menu, soft_delete from katalog where stok > 0 and soft_delete = 0")
+            cursor.execute("SELECT id_katalog, stok_menu, soft_delete from katalog where stok_menu > 0 and soft_delete = '0'")
             record = cursor.fetchall()
-            if any(katalog == x for x in record[0]):
+            print(record[0])
+            for x in record:
+                print (x[0])
+            if any(katalog == x[0] for x in record):
                 break
             else:
                 print("Masukkan id katalog yang benar")
@@ -313,19 +330,24 @@ def BuatPesanan(id):
         while True:
             jumlah = inputint("Masukkan jumlah barang yang ingin dibeli ")
             cursor.execute(f"SELECT id_katalog,stok_menu from katalog where id_katalog = '{katalog}'")
-            record = cursor.fetchall()
+            record = cursor.fetchone()
+            print("asidj",record)
             if jumlah <= record[1] and jumlah > 0:
                 break
             else:
                 print("Masukkan jumlah yang benar")
         cursor.execute("SELECT nama_kabupaten from kabupaten")
         record = cursor.fetchall()
-        if any(kabupaten.lower() == x.lower() for x in record[0]):
+        print("test789")
+        if any(kabupaten.lower() == x[0].lower() for x in record):
             print("1")
             # pass
         else:
             print("2")
-            cursor.execute(f"INSERT INTO kabupaten(nama_kabupaten) Values('{kabupaten}')")
+            cursor.execute("SELECT id_kabupaten from kabupaten ORDER BY id_kabupaten desc")
+            record = cursor.fetchone()
+            id_ = record[0] + 1
+            cursor.execute(f"INSERT INTO kabupaten(id_kabupaten,nama_kabupaten) Values('{id_}','{kabupaten}')")
             # cursor.execute(f"SELECT id_kabupaten, nama_kabupaten from kabupaten where lower(nama_kabupaten) ilike '{kabupaten}'")
             # record = cursor.fetchone()
             # cursor.execute(f"INSERT INTO kecamatan(nama_kecamatan,id_kabupaten) Values('{kecamatan}',{record[0]})")
@@ -335,58 +357,78 @@ def BuatPesanan(id):
             # cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
             # record = cursor.fetchone()
             # cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values({record[0]})")
+        print("test6732")
         cursor.execute("SELECT nama_kecamatan from kecamatan")
         record = cursor.fetchall()
-        if any(kecamatan.lower() == x.lower() for x in record[0]):
+        if any(kecamatan.lower() == x[0].lower() for x in record):
             print("3")
             # pass
         else:
             print("4")
+            cursor.execute("SELECT id_kecamatan from kecamatan ORDER BY id_kecamatan desc")
+            record = cursor.fetchone()
+            id_ = record[0] + 1
             cursor.execute(f"SELECT id_kabupaten, nama_kabupaten from kabupaten where lower(nama_kabupaten) ilike '{kabupaten}'")
             record = cursor.fetchone()
-            cursor.execute(f"INSERT INTO kecamatan(nama_kecamatan,id_kabupaten) Values('{kecamatan}','{record[0]}')")
+            cursor.execute(f"INSERT INTO kecamatan(id_kecamatan,nama_kecamatan,id_kabupaten) Values('{id_}','{kecamatan}','{record[0]}')")
         #     cursor.execute(f"SELECT id_kecamatan, nama_kecamatan from kecamatan where lower(nama_kecamatan) ilike '{kecamatan}'")
         #     record = cursor.fetchone()
         #     cursor.execute(f"INSERT INTO jalan(nama_jalan, id_kecamatan) Values('{jalan}',{cursor[0]})")
         #     cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
         #     record = cursor.fetchone()
         #     cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values({record[0]})")
+        print("hdashadsd")
         cursor.execute("SELECT nama_jalan from jalan")
         record = cursor.fetchall()
-        if any(jalan.lower() == x.lower() for x in record[0]):
+        if any(jalan.lower() == x[0].lower() for x in record):
             print("5")
             # pass
         else:
             print("6")
+            cursor.execute("SELECT id_jalan from jalan ORDER BY id_jalan desc")
+            record = cursor.fetchone()
+            id_ = record[0] + 1
             cursor.execute(f"SELECT id_kecamatan, nama_kecamatan from kecamatan where lower(nama_kecamatan) ilike '{kecamatan}'")
             record = cursor.fetchone()
             print(record)
-            cursor.execute(f"INSERT INTO jalan(nama_jalan, id_kecamatan) Values('{jalan}','{record[0]}')")
+            cursor.execute(f"INSERT INTO jalan(id_jalan,nama_jalan, id_kecamatan) Values('{id_}','{jalan}','{record[0]}')")
             print("insert berhasil ")
         #     cursor.execute(f"SELECT id_jalan, nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
         #     record = cursor.fetchone()
         #     print(record)
         #     cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values('{record[0]}')")
+        # cursor.execute("SELECT id_pesanan from pesanan ORDER BY id_pesanan desc")
+        # record = cursor.fetchone()
+        # id = record[0] + 1
         cursor.execute(f"SELECT id_jalan, nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
         record = cursor.fetchone()
         cursor.execute("SELECT id_jalan from alamat_pengiriman")
         record1 = cursor.fetchall()
-        if any (record[0] == x for x in record1[0]):
+        if any (record[0] == x[0] for x in record1):
             print("7")
             # pass
         else:
             print("8")
+            cursor.execute("SELECT id_alamat_pengiriman from alamat_pengiriman ORDER BY id_alamat_pengiriman desc")
+            record = cursor.fetchone()
+            id_ = record[0] + 1
             cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
             record = cursor.fetchone()
-            cursor.execute(f"INSERT INTO alamat_pengiriman(id_jalan) Values('{record[0]}')")
+            cursor.execute(f"INSERT INTO alamat_pengiriman(id_alamat_pengiriman,id_jalan) Values('{id_}','{record[0]}')")
         # cursor.connection.commit()
 
+        cursor.execute("SELECT id_pesanan from pesanan ORDER BY id_pesanan desc")
+        record2 = cursor.fetchone()
+        id_ = record2[0] + 1
         cursor.execute(f"SELECT id_alamat_pengiriman, id_jalan from alamat_pengiriman where id_jalan = '{record[0]}'")
         record = cursor.fetchone()
-        cursor.execute(f"INSERT INTO pesanan(tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES (now() :: DATE, 'diproses', now() :: DATE, '0', {id}, {record[0]})")
+        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'diproses', now() :: DATE, '0', {id}, {record[0]})")
+        cursor.execute("SELECT id_detail_pesanan from detail_pesanan ORDER BY id_detail_pesanan desc")
+        record = cursor.fetchone()
+        id_ = record[0] + 1
         cursor.execute(f"SELECT id_pesanan, id_alamat_pengiriman from pesanan where id_alamat_pengiriman = '{record[0]}'")
         record = cursor.fetchone()
-        cursor.execute(f"INSERT INTO detail_pesanan(jumlah_pesanan, subtotal, id_katalog, id_pesanan) VALUES ({jumlah}, 0, {katalog}, {record[0]})")
+        cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, id_katalog, id_pesanan) VALUES ('{id_}',{jumlah}, {katalog}, {record[0]})")
         cursor.connection.commit()
 
     except (Exception,Error) as error:
