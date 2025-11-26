@@ -3,7 +3,7 @@ import os
 
 def getch_():
     if os.name == 'nt':
-        getch()
+        return getch()
     elif os.name() == 'posix':
         pass
     return
