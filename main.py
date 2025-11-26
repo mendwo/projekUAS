@@ -312,30 +312,40 @@ def BuatPesanan(id):
         cursor = connect()
         cursor.execute("SELECT id_pesanan from pesanan ORDER BY id_pesanan desc")
         record = cursor.fetchone()
-        id_pesanan = record[0] + 1
+        # id_pesanan = record[0] + 1
+        kataloglist = []
+        jumlahlist = []
         while True:
-            katalog = inputint("Masukkan id barang yang ingin dibeli ")
+            katalog = input("Masukkan id barang yang ingin dibeli, kosongkan jika ingin selesai ")
+            if katalog == "":
+                break
+            elif katalog.isdigit():
+                katalog = int(katalog)
+            jumlah = inputint("Masukkan jumlah yang ingin dipesan")
             cursor.execute("SELECT id_katalog, stok_menu, soft_delete from katalog where stok_menu > 0 and soft_delete = '0'")
             record = cursor.fetchall()
-            print(record[0])
-            for x in record:
-                print (x[0])
             if any(katalog == x[0] for x in record):
-                break
+                if any(jumlah <= y[1] for y in record):
+                    kataloglist.append(katalog)
+                    jumlahlist.append(jumlah)
+                else:
+                    print("Masukkan jumlah yang benar")
             else:
                 print("Masukkan id katalog yang benar")
+        if len(kataloglist) == 0 :
+            return
         jalan = input ("Masukkan nama jalan tujuan ")
         kecamatan = input ("Masukkan nama kecamatan tujuan ")
         kabupaten = input("Masukkan nama kabupaten tujuan ")
-        while True:
-            jumlah = inputint("Masukkan jumlah barang yang ingin dibeli ")
-            cursor.execute(f"SELECT id_katalog,stok_menu from katalog where id_katalog = '{katalog}'")
-            record = cursor.fetchone()
-            print("asidj",record)
-            if jumlah <= record[1] and jumlah > 0:
-                break
-            else:
-                print("Masukkan jumlah yang benar")
+        # while True:
+        #     jumlah = inputint("Masukkan jumlah barang yang ingin dibeli ")
+        #     cursor.execute(f"SELECT id_katalog,stok_menu from katalog where id_katalog = '{katalog}'")
+        #     record = cursor.fetchone()
+        #     print("asidj",record)
+        #     if jumlah <= record[1] and jumlah > 0:
+        #         break
+        #     else:
+        #         print("Masukkan jumlah yang benar")
         cursor.execute("SELECT nama_kabupaten from kabupaten")
         record = cursor.fetchall()
         print("test789")
@@ -413,27 +423,32 @@ def BuatPesanan(id):
             record = cursor.fetchone()
             id_ = record[0] + 1
             cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
-            record = cursor.fetchone()
+            record = cursor.fetchone() #id_jalan
             cursor.execute(f"INSERT INTO alamat_pengiriman(id_alamat_pengiriman,id_jalan) Values('{id_}','{record[0]}')")
         # cursor.connection.commit()
 
         cursor.execute("SELECT id_pesanan from pesanan ORDER BY id_pesanan desc")
         record2 = cursor.fetchone()
-        id_ = record2[0] + 1
+        id_ = record2[0] + 1 #id_pesanan
         cursor.execute(f"SELECT id_alamat_pengiriman, id_jalan from alamat_pengiriman where id_jalan = '{record[0]}'")
-        record = cursor.fetchone()
+        record = cursor.fetchone() #id_alamat
+        id_alamat = record[0]
         cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'diproses', now() :: DATE, '0', {id}, {record[0]})")
         cursor.execute("SELECT id_detail_pesanan from detail_pesanan ORDER BY id_detail_pesanan desc")
         record = cursor.fetchone()
-        id_ = record[0] + 1
-        cursor.execute(f"SELECT id_pesanan, id_alamat_pengiriman from pesanan where id_alamat_pengiriman = '{record[0]}'")
-        record = cursor.fetchone()
-        cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, id_katalog, id_pesanan) VALUES ('{id_}',{jumlah}, {katalog}, {record[0]})")
+        id_ = record[0] + 1 #id_detail_pesanan
+        cursor.execute(f"SELECT id_pesanan, id_alamat_pengiriman from pesanan where id_alamat_pengiriman = '{id_alamat}'")
+        record = cursor.fetchone() #id_pesanan
+        for x in kataloglist:
+            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, id_katalog, id_pesanan) VALUES ('{id_}',{jumlah}, {x}, {record[0]})")
+            id_ += 1
         cursor.connection.commit()
+        
+        return
 
     except (Exception,Error) as error:
         print(error)
-
+        return
 
 def StatusPesanan():
     pass
