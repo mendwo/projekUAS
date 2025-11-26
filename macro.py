@@ -1,6 +1,12 @@
 from msvcrt import *
-import os
+import os 
 
+def getch_():
+    if os.name == 'nt':
+        getch()
+    elif os.name() == 'posix':
+        pass
+    return
 
 def passbintang(text=""):
     string= ""
@@ -12,15 +18,14 @@ def passbintang(text=""):
             print ("*" ,end='',flush=True)
 
         elif c[0] == 8: # backspace , buat hapus
-            os.system('cls')
+            clear()
             print (text)
             string = string[:len(string)-1]
             print ("*"*len(string),end='',flush=True)
         elif c[0] == 13: # enter , buat keluar
             break
 
-
-    os.system('cls')
+    clear()
     # print(string)
     return string
 
@@ -35,7 +40,13 @@ def inputint(comment):
     return a
 
 def clear():
-    os.system('cls')
+    if os.name == 'nt':
+        os.system('cls')
+    
+    elif os.name == 'posix':
+        os.system('clear')
+        
+    return
 
 def select(text):
     textt = text.splitlines()
@@ -56,13 +67,13 @@ def select(text):
         listt = []
         c = ""
         while len(listt) < 2:
-            c = getch()
+            c = getch_()
             listt.append(ord(c))
             if ord(c) != 224:
                 listt.append(ord(c))
                 break
             # print (ord(c))
-        os.system('cls')
+        clear()
         # print (listt)
     # temp = []
     # c = getch()

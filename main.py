@@ -216,42 +216,74 @@ def ChangeAkunAll():
         print("Data tidak jadi diubah")
         getch()
 
-def ChangeAkunSelf(id_):
+def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan query nanti
 
+    count = 0
     cursor = connect()
     cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
     records = cursor.fetchone()
-    # print(records)
     query = "Update pengguna Set "
-    nama = input("Masukkan nama baru, kosongkan jika sama ")
-    count = 0
-    if not nama == "":
-        query = query + f" nama_lengkap = '{nama}'"
-        count += 1
-    username = input ("Masukkan username baru, kosongkan jika sama ")
-    if not username == "":
-        if not count == 0:
-            query = query + ","
-        query = query + f" username = '{username}'"
-        count += 1
-    password = input("Masukkan password baru, kosongkan jika sama ")
-    if not password == "":
-        if not count == 0:
-            query = query + ","
-        query = query + f" passwords = '{password}'"
-        count += 1
-    no = input("Masukkan nomer telepon baru, kosongkan jika sama ")
-    if not no == "":
-        if not count == 0:
-            query = query + ","
-        count += 1
-        query = query + f" no_telpon = '{no}'"
-    email = input("Masukkan email baru, kosongkan jika sama ")
-    if not email == "":
-        if not count == 0:
-            query = query + ","
-        count += 1
-        query = query + f" email = '{email}'"
+    while True:
+        nama = input("Masukkan nama baru, kosongkan jika sama ")
+        if not nama == "":
+            if len(nama) < 3 and len(nama) > 33:
+                query = query + f" nama_lengkap = '{nama}'"
+                count += 1
+                break
+            else:
+                continue
+        else:
+            break
+    while True:
+        username = input ("Masukkan username baru, kosongkan jika sama ")
+        if not username == "":
+            if len(username) > 3 and len(username) < 17:
+                if not count == 0:
+                    query = query + ","
+                query = query + f" username = '{username}'"
+                count += 1
+                break
+        else:
+            break
+    while True:
+        password = input("Masukkan password baru, kosongkan jika sama ")
+        if not password == "":
+            if len(password) > 3 and len(password) < 17:
+                if not count == 0:
+                    query = query + ","
+                query = query + f" passwords = '{password}'"
+                count += 1
+                break
+        else:
+            break
+    while True:
+        no = input("Masukkan nomer telepon baru, kosongkan jika sama ")
+        if not no == "":
+            if all(x.isdigit() or x in "+-"  for x in no):
+                if not count == 0:
+                    query = query + ","
+                count += 1
+                query = query + f" no_telpon = '{no}'"
+                break
+            else:
+                print("Maukkan input yang vaild")
+                continue
+        else:
+            break
+    while True:
+        email = input("Masukkan email baru, kosongkan jika sama ")
+        if not email == "":
+            if email and "@" in email and "." in email:
+                if not count == 0:
+                    query = query + ","
+                count += 1
+                query = query + f" email = '{email}'"
+                break
+            else:
+                continue
+        else:
+            break
+                
     query = query + f" WHERE id_pengguna = {records[0]}"
     if count != 0:
         cursor.execute(query)
@@ -433,7 +465,7 @@ def BuatPesanan(id):
         cursor.execute(f"SELECT id_alamat_pengiriman, id_jalan from alamat_pengiriman where id_jalan = '{record[0]}'")
         record = cursor.fetchone() #id_alamat
         id_alamat = record[0]
-        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'diproses', now() :: DATE, '0', {id}, {record[0]})")
+        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'belum bayar', now() :: DATE, '0', {id}, {record[0]})")
         cursor.execute("SELECT id_detail_pesanan from detail_pesanan ORDER BY id_detail_pesanan desc")
         record = cursor.fetchone()
         id_ = record[0] + 1 #id_detail_pesanan
@@ -458,6 +490,11 @@ def Katalog():
 
 def Laporan():
     pass
+
+def Pembayaran(id):
+    #WIP, nunggu basda jadi
+    cursor = connect()
+    cursor.execute("SELECT ")
 
 ################################################################
 
@@ -504,7 +541,8 @@ while login_status == 1:
 1. Data akun (melihat dan mengedit)
 2. Membuat Pesanan
 3. Status pesanan (melihat dan menghapus)
-4. Log out / keluar
+4. Pembayaran
+5. Log out / keluar
 """)
             temp = inputint("Masukkan menu yang diinginkan ")
             if temp == 1:
@@ -522,7 +560,9 @@ while login_status == 1:
                 if not pilihan == "":
                     clear()
                     HapusPesanan(data_user[0])
-            elif temp == 4 :
+            elif temp == 4:
+                Pembayaran(data_user[0])
+            elif temp == 5 :
                 clear()
                 temp = input("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
                 if temp == "y":
