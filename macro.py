@@ -5,7 +5,7 @@ def getch_():
     if os.name == 'nt':
         return getch()
     elif os.name() == 'posix':
-        pass
+        return input()
     return
 
 def passbintang(text=""):

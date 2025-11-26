@@ -4,7 +4,7 @@ from prettytable import from_db_cursor, PrettyTable
 from macro import *
 from connectsql import *
 
-### Note : Sisa fitur sedang menunggu konfirmasi benar atau tidak. Daripada kerja dua kali
+### Note : Sisa fitur sedang menunggu konfirmasi dari basda benar atau tidak. Daripada kerja dua kali
 
 def showtable(entity):
     querydefault = f"SELECT * FROM {entity}"
@@ -91,7 +91,7 @@ def Showtablewithout(entity):
         for y in record:
             mytable.add_row(y)
         print(mytable)
-        getch()
+        getch_()
 
 def regis():
     while True:
@@ -127,12 +127,12 @@ def regis():
                 cursor.connection.commit()
                 clear()
                 print("Berhasil registrasi")
-                getch()
+                getch_()
                 clear()
                 break
             else:
                 print("jumlah karakter username atau password tidak memenuhi syarat...")
-                getch()
+                getch_()
         except (Exception,Error) as error:
             print(error)
 
@@ -210,11 +210,11 @@ def ChangeAkunAll():
         cursor.connection.commit()
         clear()
         print(f"{count} data berhasil diubah...")
-        getch()
+        getch_()
     else:
         clear()
         print("Data tidak jadi diubah")
-        getch()
+        getch_()
 
 def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan query nanti
 
@@ -290,11 +290,11 @@ def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan que
         cursor.connection.commit()
         clear()
         print(f"{count} data berhasil diubah...")
-        getch()
+        getch_()
     else:
         clear()
         print("Data tidak jadi diubah")
-        getch()
+        getch_()
 
 def TampilkanPesanan(id,mode=1):
     try:
@@ -521,7 +521,7 @@ while True:
             clear()
             break
         print("Username atau passsword salah")
-        getch()
+        getch_()
         clear()
     elif pilihanmenu == 3 :
         clear()
@@ -553,7 +553,7 @@ while login_status == 1:
                     ChangeAkunSelf(data_user[0])
             elif temp == 2:
                 BuatPesanan(data_user[0])
-                getch()
+                getch_()
             elif temp == 3 :
                 TampilkanPesanan(data_user[0])
                 pilihan = input("Enter jika lanjut, masukkan sembarang huruf jika ingin menghapus data")
