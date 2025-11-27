@@ -1,12 +1,13 @@
-from msvcrt import *
 import os 
+if os.name == 'nt':
+    from msvcrt import getch
 
-def getch_():
-    if os.name == 'nt':
+def getch_(): # getch tapi ditambah jika os selain windows
+    if os.name == 'nt': #Jika os nya windows
         return getch()
-    elif os.name() == 'posix':
+    elif os.name() == 'posix': #Jika osnya linux atau macOs
         return input()
-    return
+
 
 def passbintang(text=""):
     string= ""
@@ -65,7 +66,7 @@ def select(text):
         i += 1
         print (x)
 
-    while True:
+    while True: #Ngecek input
         i= 0
         listt = []
         c = ""

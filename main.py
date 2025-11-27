@@ -357,7 +357,7 @@ def BuatPesanan(id):
                 break
             elif katalog.isdigit():
                 katalog = int(katalog)
-            jumlah = inputint("Masukkan jumlah yang ingin dipesan")
+            jumlah = inputint("Masukkan jumlah yang ingin dipesan ")
             cursor.execute("SELECT id_katalog, stok_menu, soft_delete from katalog where stok_menu > 0 and soft_delete = '0'")
             record = cursor.fetchall()
             if any(katalog == x[0] for x in record):
@@ -487,7 +487,25 @@ def BuatPesanan(id):
         record = cursor.fetchone() #id_alamat
         id_alamat = record[0]
         print("10")
-        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'belum bayar', now() :: DATE, '0', {id}, {record[0]})")
+        while True:
+            print("1. Tunai\n2. Non tunai")
+            metode = input("Masukkan metode pembayaran ")
+            if metode == "1" :
+                metode = "tunai"
+                break
+            elif metode == "2":
+                metode = "non tunai"
+                break
+            else:
+                print("Masukkan pilihan yang benar")
+        cursor.execute("SELECT id_pembayaran from pembayaran ORDER BY id_pembayaran desc")
+        record = cursor.fetchone()
+        id_pembayaran = record[0] + 1
+        cursor.execute(f"INSERT INTO transaksi Values ({id_pembayaran}, now() :: DATE, 'belum membayar', '{metode}', '0')")
+
+
+
+        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'belum bayar', now() :: DATE, '0', {id}, {record[0]})")
         cursor.execute("SELECT id_detail_pesanan from detail_pesanan ORDER BY id_detail_pesanan desc")
         record = cursor.fetchone()
         if record == None:
@@ -500,7 +518,7 @@ def BuatPesanan(id):
         for x in kataloglist: #belum harga satuan
             cursor.execute(f"SELECT id_katalog, harga_menu from katalog where id_katalog = {x}")
             record_harga = cursor.fetchone()
-            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, harga_satuan, id_katalog, id_pesanan) VALUES ('{id_}',{jumlah},{record_harga[1]}, {x}, {record[0]})")
+            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, harga_satuan, id_pesanan, id_katalog) VALUES ('{id_}',{jumlah},{record_harga[1]}, {record[0]}, {x})")
             id_ += 1
         cursor.connection.commit()
         
@@ -645,6 +663,11 @@ while login_status == 1:
         # print('Error, Silahkan kontak admin(Error 001)')
         print(Error)
         print("Error 123")
+
+    # finally:
+    #     if cursor.connection():
+    #         cursor.close()
+    #         cursor.connectio.closen()
 
 
 # # if connection:
