@@ -7,6 +7,6 @@ def connect():
     password="123",
     host = "127.0.0.1",
     port = "5432",
-    database="Projek 2")
+    database="Projek 3")
     cursor = connection.cursor()
     return cursor

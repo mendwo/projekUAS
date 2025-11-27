@@ -137,9 +137,12 @@ def regis():
             print(error)
 
 def login():
-    cursor = connect()
     username= input("masukkan username ")
     passw= passbintang("masukkan password ")
+    return username, passw
+
+def login_refresh(username, passw):
+    cursor = connect()
     try :
         cursor.execute("SELECT * FROM pengguna")
         records = cursor.fetchall()
@@ -151,6 +154,7 @@ def login():
             print ("berhasil")
             print (index)
             return row
+            # return row
     if index is None:
         print("Salah")
 
@@ -226,7 +230,7 @@ def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan que
     while True:
         nama = input("Masukkan nama baru, kosongkan jika sama ")
         if not nama == "":
-            if len(nama) < 3 and len(nama) > 33:
+            if len(nama) > 3 and len(nama) < 33:
                 query = query + f" nama_lengkap = '{nama}'"
                 count += 1
                 break
@@ -388,7 +392,10 @@ def BuatPesanan(id):
             print("2")
             cursor.execute("SELECT id_kabupaten from kabupaten ORDER BY id_kabupaten desc")
             record = cursor.fetchone()
-            id_ = record[0] + 1
+            if record == None:
+                id_ = 1
+            else:
+                id_ = record[0] + 1
             cursor.execute(f"INSERT INTO kabupaten(id_kabupaten,nama_kabupaten) Values('{id_}','{kabupaten}')")
             # cursor.execute(f"SELECT id_kabupaten, nama_kabupaten from kabupaten where lower(nama_kabupaten) ilike '{kabupaten}'")
             # record = cursor.fetchone()
@@ -409,7 +416,10 @@ def BuatPesanan(id):
             print("4")
             cursor.execute("SELECT id_kecamatan from kecamatan ORDER BY id_kecamatan desc")
             record = cursor.fetchone()
-            id_ = record[0] + 1
+            if record == None:
+                id_ = 1
+            else:
+                id_ = record[0] + 1
             cursor.execute(f"SELECT id_kabupaten, nama_kabupaten from kabupaten where lower(nama_kabupaten) ilike '{kabupaten}'")
             record = cursor.fetchone()
             cursor.execute(f"INSERT INTO kecamatan(id_kecamatan,nama_kecamatan,id_kabupaten) Values('{id_}','{kecamatan}','{record[0]}')")
@@ -429,7 +439,10 @@ def BuatPesanan(id):
             print("6")
             cursor.execute("SELECT id_jalan from jalan ORDER BY id_jalan desc")
             record = cursor.fetchone()
-            id_ = record[0] + 1
+            if record == None:
+                id_ = 1
+            else:
+                id_ = record[0] + 1
             cursor.execute(f"SELECT id_kecamatan, nama_kecamatan from kecamatan where lower(nama_kecamatan) ilike '{kecamatan}'")
             record = cursor.fetchone()
             print(record)
@@ -453,26 +466,41 @@ def BuatPesanan(id):
             print("8")
             cursor.execute("SELECT id_alamat_pengiriman from alamat_pengiriman ORDER BY id_alamat_pengiriman desc")
             record = cursor.fetchone()
-            id_ = record[0] + 1
+            if record == None:
+                id_ = 1
+            else:
+                id_ = record[0] + 1
             cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
             record = cursor.fetchone() #id_jalan
             cursor.execute(f"INSERT INTO alamat_pengiriman(id_alamat_pengiriman,id_jalan) Values('{id_}','{record[0]}')")
         # cursor.connection.commit()
 
+        print("9")
         cursor.execute("SELECT id_pesanan from pesanan ORDER BY id_pesanan desc")
         record2 = cursor.fetchone()
-        id_ = record2[0] + 1 #id_pesanan
+        print(record2)
+        if record2 == None:
+            id_= 1
+        else:
+            id_ = record2[0] + 1 #id_pesanan
         cursor.execute(f"SELECT id_alamat_pengiriman, id_jalan from alamat_pengiriman where id_jalan = '{record[0]}'")
         record = cursor.fetchone() #id_alamat
         id_alamat = record[0]
+        print("10")
         cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'belum bayar', now() :: DATE, '0', {id}, {record[0]})")
         cursor.execute("SELECT id_detail_pesanan from detail_pesanan ORDER BY id_detail_pesanan desc")
         record = cursor.fetchone()
-        id_ = record[0] + 1 #id_detail_pesanan
+        if record == None:
+            id_ = 1
+        else:
+            id_ = record[0] + 1 #id_detail_pesanan
+        print("11")
         cursor.execute(f"SELECT id_pesanan, id_alamat_pengiriman from pesanan where id_alamat_pengiriman = '{id_alamat}'")
         record = cursor.fetchone() #id_pesanan
-        for x in kataloglist:
-            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, id_katalog, id_pesanan) VALUES ('{id_}',{jumlah}, {x}, {record[0]})")
+        for x in kataloglist: #belum harga satuan
+            cursor.execute(f"SELECT id_katalog, harga_menu from katalog where id_katalog = {x}")
+            record_harga = cursor.fetchone()
+            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, harga_satuan, id_katalog, id_pesanan) VALUES ('{id_}',{jumlah},{record_harga[1]}, {x}, {record[0]})")
             id_ += 1
         cursor.connection.commit()
         
@@ -514,15 +542,17 @@ while True:
         regis()
     elif pilihanmenu == 2:  
         clear()
-        data_user = login()
-        print(data_user)
+        username,password = login()
+        data_user = login_refresh(username, password)
+        # print(data_user)
         if not data_user is None:
             login_status = 1
             clear()
             break
-        print("Username atau passsword salah")
-        getch_()
-        clear()
+        else:
+            print("Username atau passsword salah")
+            getch_()
+            clear()
     elif pilihanmenu == 3 :
         clear()
         temp= input("Masukkan tabel yang ingin ditampilkan ")
@@ -535,6 +565,7 @@ while True:
 
 while login_status == 1:
     try:
+        data_user = login_refresh(username, password)
         if data_user[1] is False: # Menu pembeli
             clear()
             print("""
