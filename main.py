@@ -31,7 +31,13 @@ def showtable(entity):
             columns = [x[0] for x in cursor.description]
             mytable = PrettyTable(columns)
             for y in record:
-                mytable.add_row(y)
+                zz = []
+                for z in y:
+                    if z is None:
+                        zz.append("-")
+                    else:
+                        zz.append(z)
+                mytable.add_row(zz)
             print(mytable)
             temp = input("Masukkan opsi (join, where, group, having, order,)\n(enter untuk next page,isi sembarang untuk skip) ")
             if temp != "":
@@ -89,7 +95,13 @@ def Showtablewithout(entity):
         columns = [x[0] for x in cursor.description]
         mytable = PrettyTable(columns)
         for y in record:
-            mytable.add_row(y)
+            zz = []
+            for z in y:
+                if z is None:
+                    zz.append("-")
+                else:
+                    zz.append(z)
+            mytable.add_row(zz)
         print(mytable)
         getch_()
 
@@ -136,15 +148,15 @@ def regis():
         except (Exception,Error) as error:
             print(error)
 
-def login():
+def login_user():
     username= input("masukkan username ")
     passw= passbintang("masukkan password ")
     return username, passw
 
-def login_refresh(username, passw):
+def login(username, passw):
     cursor = connect()
     try :
-        cursor.execute("SELECT * FROM pengguna")
+        cursor.execute(f"SELECT * FROM pengguna")
         records = cursor.fetchall()
     except psycopg2.Error as Error:
         print("Salah")
@@ -157,6 +169,15 @@ def login_refresh(username, passw):
             # return row
     if index is None:
         print("Salah")
+
+def login_refresh(id_user):
+    cursor = connect()
+    try :
+        cursor.execute(f"SELECT * FROM pengguna where id_pengguna = {id_user}")
+        records = cursor.fetchone()
+    except psycopg2.Error as Error:
+        print("Salah")
+    return records
 
 
 def ShowAkun():
@@ -560,8 +581,8 @@ while True:
         regis()
     elif pilihanmenu == 2:  
         clear()
-        username,password = login()
-        data_user = login_refresh(username, password)
+        username,password = login_user()
+        data_user = login(username, password)
         # print(data_user)
         if not data_user is None:
             login_status = 1
@@ -583,7 +604,8 @@ while True:
 
 while login_status == 1:
     try:
-        data_user = login_refresh(username, password)
+        id_user = data_user[0]
+        data_user = login_refresh(id_user)
         if data_user[1] is False: # Menu pembeli
             clear()
             print("""
@@ -659,11 +681,11 @@ while login_status == 1:
                 if temp == "y":
                     login_status = 0
         
-    except :
+    except (Exception,Error) as error:
         # print('Error, Silahkan kontak admin(Error 001)')
-        print(Error)
+        print(error)
         print("Error 123")
-
+        break
     # finally:
     #     if cursor.connection():
     #         cursor.close()
