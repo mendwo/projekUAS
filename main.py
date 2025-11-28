@@ -379,8 +379,24 @@ def HapusPesanan(id):
 
 def BuatPesanan(id):
     try:
-        Showtablewithout('katalog')
+        # Showtablewithout('katalog')
         cursor = connect()
+        # cursor.execute("SELECT ")
+        # columns = [x[0] for x in cursor.description]
+        # mytable = PrettyTable(columns)
+        # if len(record) == 0:
+        #     print("Anda belum melakukan pemesanan")
+        #     return 1
+        # else:
+        #     for y in record:
+        #         zz = []
+        #         for z in y:
+        #             if z is None:
+        #                 zz.append("-")
+        #             else:
+        #                 zz.append(z)
+        #         mytable.add_row(zz)
+        #     print(mytable)
         cursor.execute("SELECT id_pesanan from pesanan ORDER BY id_pesanan desc")
         record = cursor.fetchone()
         # id_pesanan = record[0] + 1
@@ -579,17 +595,35 @@ def Laporan():
 
 def Pembayaran(id):
     #WIP, nunggu basda jadi
-    TampilkanPesanan(id,2)
+    # TampilkanPesanan(id,2)
+    clear()
     cursor = connect()
-    cursor.execute(f"SELECT * from pesanan where id_pengguna = '{id}'")
+    cursor.execute(f"SELECT p.id_pesanan, p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman, j.nama_jalan || ', ' || k.nama_kecamatan || ', ' || ka.nama_kabupaten AS Alamat FROM pesanan p, jalan j, kecamatan k, kabupaten ka, alamat_pengiriman a where is_delete = '0' and id_pengguna = '{id}' and status_pesanan = 'belum bayar' and p.id_alamat_pengiriman = a.id_alamat_pengiriman and a.id_jalan = j.id_jalan and j.id_kecamatan = k.id_kecamatan and k.id_kabupaten = ka.id_kabupaten")
     record = cursor.fetchall()
     # print("test07")
     # print(record)
     if len(record) == 0:
         print("Anda belum melakukan pemesanan")
         return 1
+    columns = [x[0] for x in cursor.description]
+    mytable = PrettyTable(columns)
+    if len(record) == 0:
+        print("Anda belum melakukan pemesanan")
+        return 1
+    else:
+        for y in record:
+            zz = []
+            for z in y:
+                if z is None:
+                    zz.append("-")
+                else:
+                    zz.append(z)
+            mytable.add_row(zz)
+        print(mytable)
     while True:
-        id_ = inputint("Masukkan id yang ingin dibayar ")
+        id_ = input("Masukkan id yang ingin dibayar ")
+        if id_.isdigit():
+            id_ = int(id_)
         if any(id_ == x[0] for x in record):
             cursor.execute(f"SELECT id_transaksi FROM pesanan where id_pesanan = '{id_}'")
             id_transaksi = cursor.fetchone()
@@ -612,10 +646,16 @@ def Pembayaran(id):
         if bayar == harga:
             pilihbayar = input("Apakah anda yakin? ketik y jika anda yakin ")
             if pilihbayar == "y":
-                cursor.execute(f"UPDATE transaksi SET status_pembayaran = 'sudah membayar' where id_transaksi = '{id_transaksi[0]}'")
-                print("Pesanan berhasil dibayar")
-                getch_()
-                break
+                try:
+                    cursor.execute(f"UPDATE transaksi SET status_pembayaran = 'sudah membayar' where id_transaksi = '{id_transaksi[0]}'")
+                    cursor.execute(f"UPDATE pesanan SET status_pesanan = 'diproses' where id_transaksi = '{id_transaksi[0]}'")
+                    cursor.connection.commit()
+                except(Exception,Error) as error:
+                    print(error)
+                finally:
+                    print("Pesanan berhasil dibayar")
+                    getch_()
+                    break
         elif bayar < harga:
             print("Nominal anda kurang ")
             getch_()
