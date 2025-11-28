@@ -160,11 +160,12 @@ def login(username, passw):
         records = cursor.fetchall()
     except psycopg2.Error as Error:
         print("Salah")
-    index = None
-    for index,row in enumerate(records):
+    # index = None
+    # for index,row in enumerate(records):
+    for row in records:
         if username == row[3] and passw == row[4]:
             print ("berhasil")
-            print (index)
+            # print (index)
             return row
             # return row
     if index is None:
