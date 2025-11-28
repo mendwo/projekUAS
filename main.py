@@ -379,7 +379,7 @@ def HapusPesanan(id):
 
 def BuatPesanan(id):
     try:
-        # Showtablewithout('katalog')
+        Showtablewithout('katalog')
         cursor = connect()
         # cursor.execute("SELECT ")
         # columns = [x[0] for x in cursor.description]
