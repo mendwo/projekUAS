@@ -23,9 +23,16 @@ def showtable(entity):
         cursor.execute(query)
         if jumlah[0] % 5 == 0:
             page = jumlah[0]//5
+        elif jumlah == 0:
+            page = 1
         else:
             page = jumlah[0]//5+1
         for x in range(page):
+            if jumlah == 0:
+                print("Belum ada data ")
+                getch_()
+                clear()
+                break
             print("Halaman ke ",x+1)
             record = cursor.fetchmany(5)
             columns = [x[0] for x in cursor.description]
@@ -161,12 +168,10 @@ def login(username, passw):
     except psycopg2.Error as Error:
         print("Salah")
     index = None
-    for index,row in enumerate(records):
+    for row in records:
         if username == row[3] and passw == row[4]:
             print ("berhasil")
-            print (index)
             return row
-            # return row
     if index is None:
         print("Salah")
 
@@ -392,6 +397,7 @@ def BuatPesanan(id):
         if len(kataloglist) == 0 :
             return
         jalan = input ("Masukkan nama jalan tujuan ")
+        no_alamat = input ("Masukkan no alamat tujuan")
         kecamatan = input ("Masukkan nama kecamatan tujuan ")
         kabupaten = input("Masukkan nama kabupaten tujuan ")
         # while True:
@@ -493,7 +499,7 @@ def BuatPesanan(id):
                 id_ = record[0] + 1
             cursor.execute(f"SELECT id_jalan,nama_jalan from jalan where lower(nama_jalan) ilike '{jalan}'")
             record = cursor.fetchone() #id_jalan
-            cursor.execute(f"INSERT INTO alamat_pengiriman(id_alamat_pengiriman,id_jalan) Values('{id_}','{record[0]}')")
+            cursor.execute(f"INSERT INTO alamat_pengiriman(id_alamat_pengiriman, no_alamat, id_jalan) Values('{id_}', '{no_alamat}','{record[0]}')")
         # cursor.connection.commit()
 
         print("9")
@@ -519,10 +525,10 @@ def BuatPesanan(id):
                 break
             else:
                 print("Masukkan pilihan yang benar")
-        cursor.execute("SELECT id_pembayaran from pembayaran ORDER BY id_pembayaran desc")
+        cursor.execute("SELECT id_transaksi from transaksi ORDER BY id_pembayaran desc")
         record = cursor.fetchone()
-        id_pembayaran = record[0] + 1
-        cursor.execute(f"INSERT INTO transaksi Values ({id_pembayaran}, now() :: DATE, 'belum membayar', '{metode}', '0')")
+        id_transaksi = record[0] + 1
+        cursor.execute(f"INSERT INTO transaksi Values ({id_transaksi}, now() :: DATE, 'belum membayar', '0', '{metode}')")
 
 
 
@@ -559,9 +565,70 @@ def Laporan():
     pass
 
 def Pembayaran(id):
-    #WIP, nunggu basda jadi
+    clear()
     cursor = connect()
-    cursor.execute("SELECT ")
+    cursor.execute(f"SELECT p.id_pesanan, p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman, j.nama_jalan || ', ' || k.nama_kecamatan || ', ' || ka.nama_kabupaten AS Alamat FROM pesanan p, jalan j, kecamatan k, kabupaten ka, alamat_pengiriman a where is_delete = '0' and id_pengguna = '{id}' and status_pesanan = 'belum bayar' and p.id_alamat_pengiriman = a.id_alamat_pengiriman and a.id_jalan = j.id_jalan and j.id_kecamatan = k.id_kecamatan and k.id_kabupaten = ka.id_kabupaten")
+    record = cursor.fetchall()
+    if len(record) == 0:
+        print("Anda belum melakukan pemesanan")
+        getch_()
+        return 1
+    columns = [x[0] for x in cursor.description]
+    mytable = PrettyTable(columns)
+    for y in record:
+        zz = []
+        for z in y:
+            if z is None:
+                zz.append("-")
+            else:
+                zz.append(z)
+        mytable.add_row(zz)
+    print(mytable)
+    while True:
+        id_ = input("Masukkan id yang ingin dibayar ")
+        if id_.isdigit():
+            id_ = int(id_)
+        if any(id_ == x[0] for x in record):
+            cursor.execute(f"SELECT id_transaksi FROM pesanan where id_pesanan = '{id_}'")
+            id_transaksi = cursor.fetchone()
+            break
+        elif id_ == "":
+            return
+        else:
+            print("Masukkan id yang benar")
+            getch_()
+            continue
+    
+    cursor.execute(f"SELECT jumlah_pesanan*harga_satuan FROM detail_pesanan where id_pesanan = {id_}")
+    record = cursor.fetchall()
+    harga = 0
+    for x in record:
+        harga += x[0]
+    while True:
+        print("Harga yang harus dibayar adalah ",harga)
+        bayar = inputint("Uang yang dibayar :")
+        if bayar == harga:
+            pilihbayar = input("Apakah anda yakin? ketik y jika anda yakin ")
+            if pilihbayar == "y":
+                try:
+                    cursor.execute(f"UPDATE transaksi SET status_pembayaran = 'sudah membayar' where id_transaksi = '{id_transaksi[0]}'")
+                    cursor.execute(f"UPDATE pesanan SET status_pesanan = 'diproses' where id_transaksi = '{id_transaksi[0]}'")
+                    cursor.connection.commit()
+                except(Exception,Error) as error:
+                    print(error)
+                finally:
+                    print("Pesanan berhasil dibayar")
+                    getch_()
+                    break
+        elif bayar < harga:
+            print("Nominal anda kurang ")
+            getch_()
+            clear()
+        elif bayar > harga:
+            print("Nominal anda terlalu banyak")
+            getch_()
+            clear()
+
 
 ################################################################
 
