@@ -6,6 +6,8 @@ from connectsql import *
 
 ### Note : Sisa fitur sedang menunggu konfirmasi dari basda benar atau tidak. Daripada kerja dua kali
 
+#fff
+
 def showtable(entity):
     querydefault = f"SELECT * FROM {entity}"
     ordercount = 0
