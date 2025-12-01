@@ -328,6 +328,7 @@ def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan que
 
 def TampilkanPesanan(id,mode=1):
     try:
+        clear()
         cursor = connect()
         # cursor.execute(f"SELECT p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman FROM pesanan p where is_delete = '0' and id_pengguna = '{id}'")
         if mode == 1:
@@ -335,12 +336,25 @@ def TampilkanPesanan(id,mode=1):
         else:
             cursor.execute(f"SELECT p.id_pesanan, p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman, j.nama_jalan || ' ' || k.nama_kecamatan || ' ' || ka.nama_kabupaten AS Alamat FROM pesanan p, jalan j, kecamatan k, kabupaten ka, alamat_pengiriman a where is_delete = '0' and id_pengguna = '{id}' and p.id_alamat_pengiriman = a.id_alamat_pengiriman and a.id_jalan = j.id_jalan and j.id_kecamatan = k.id_kecamatan and k.id_kabupaten = ka.id_kabupaten")
         record = cursor.fetchall()
-        print("test")
+        # print(record)
+        if len(record) == 0:
+            print("Anda belum memiliki pesanan ")
+            getch_()
+            return 0
         columns = [x[0] for x in cursor.description]
         mytable = PrettyTable(columns)
         for y in record:
-            mytable.add_row(y)
-        print(mytable)
+            zz = []
+            for z in y:
+                if z is None:
+                    zz.append("-")
+                else:
+                    zz.append(z)
+            mytable.add_row(zz)
+            print(mytable)
+        # for y in record:
+        #     mytable.add_row(y)
+        # print(mytable)
 
     except (Exception,Error) as error:
         print(error)
@@ -397,7 +411,7 @@ def BuatPesanan(id):
         if len(kataloglist) == 0 :
             return
         jalan = input ("Masukkan nama jalan tujuan ")
-        no_alamat = input ("Masukkan no alamat tujuan")
+        no_alamat = input ("Masukkan no alamat tujuan ")
         kecamatan = input ("Masukkan nama kecamatan tujuan ")
         kabupaten = input("Masukkan nama kabupaten tujuan ")
         # while True:
@@ -516,23 +530,17 @@ def BuatPesanan(id):
         print("10")
         while True:
             print("1. Tunai\n2. Non tunai")
-            metode = input("Masukkan metode pembayaran ")
-            if metode == "1" :
-                metode = "tunai"
-                break
-            elif metode == "2":
-                metode = "non tunai"
+            metode = inputint("Masukkan metode pembayaran ")
+            if metode == 1 or metode == 2:
                 break
             else:
                 print("Masukkan pilihan yang benar")
-        cursor.execute("SELECT id_transaksi from transaksi ORDER BY id_pembayaran desc")
+        cursor.execute("SELECT id_transaksi from transaksi ORDER BY id_transaksi desc")
         record = cursor.fetchone()
         id_transaksi = record[0] + 1
         cursor.execute(f"INSERT INTO transaksi Values ({id_transaksi}, now() :: DATE, 'belum membayar', '0', '{metode}')")
 
-
-
-        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, tanggal_pengiriman, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'belum bayar', now() :: DATE, '0', {id}, {record[0]})")
+        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'belum bayar', '0', '{id}', '{record[0]}','{id_alamat}')")
         cursor.execute("SELECT id_detail_pesanan from detail_pesanan ORDER BY id_detail_pesanan desc")
         record = cursor.fetchone()
         if record == None:
@@ -545,7 +553,7 @@ def BuatPesanan(id):
         for x in kataloglist: #belum harga satuan
             cursor.execute(f"SELECT id_katalog, harga_menu from katalog where id_katalog = {x}")
             record_harga = cursor.fetchone()
-            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_pesanan, harga_satuan, id_pesanan, id_katalog) VALUES ('{id_}',{jumlah},{record_harga[1]}, {record[0]}, {x})")
+            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_detail_pesanan, harga_satuan, id_pesanan, id_katalog) VALUES ('{id_}',{jumlah},{record_harga[1]}, {record[0]}, {x})")
             id_ += 1
         cursor.connection.commit()
         
@@ -599,7 +607,7 @@ def Pembayaran(id):
             getch_()
             continue
     
-    cursor.execute(f"SELECT jumlah_pesanan*harga_satuan FROM detail_pesanan where id_pesanan = {id_}")
+    cursor.execute(f"SELECT jumlah_detail_pesanan*harga_satuan FROM detail_pesanan where id_pesanan = {id_}")
     record = cursor.fetchall()
     harga = 0
     for x in record:
@@ -611,7 +619,7 @@ def Pembayaran(id):
             pilihbayar = input("Apakah anda yakin? ketik y jika anda yakin ")
             if pilihbayar == "y":
                 try:
-                    cursor.execute(f"UPDATE transaksi SET status_pembayaran = 'sudah membayar' where id_transaksi = '{id_transaksi[0]}'")
+                    cursor.execute(f"UPDATE transaksi SET status_transaksi = 'sudah membayar' where id_transaksi = '{id_transaksi[0]}'")
                     cursor.execute(f"UPDATE pesanan SET status_pesanan = 'diproses' where id_transaksi = '{id_transaksi[0]}'")
                     cursor.connection.commit()
                 except(Exception,Error) as error:
@@ -693,11 +701,12 @@ while login_status == 1:
                 BuatPesanan(data_user[0])
                 getch_()
             elif temp == 3 :
-                TampilkanPesanan(data_user[0])
-                pilihan = input("Enter jika lanjut, masukkan sembarang huruf jika ingin menghapus data")
-                if not pilihan == "":
-                    clear()
-                    HapusPesanan(data_user[0])
+                pesanan = TampilkanPesanan(data_user[0])
+                if pesanan != 0:
+                    pilihan = input("Enter jika lanjut, masukkan sembarang huruf jika ingin menghapus data")
+                    if not pilihan == "":
+                        clear()
+                        HapusPesanan(data_user[0])
             elif temp == 4:
                 Pembayaran(data_user[0])
             elif temp == 5 :
