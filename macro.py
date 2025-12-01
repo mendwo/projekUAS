@@ -2,11 +2,18 @@ import os
 if os.name == 'nt':
     from msvcrt import getch
 
-def getch_(): # getch tapi ditambah jika os selain windows
+def getch_(ascii = 0): # getch tapi ditambah jika os selain windows
     if os.name == 'nt': #Jika os nya windows
-        return getch()
+        if ascii == 0:
+            return getch()
+        elif ascii == 1:
+            return ord(getch())
     elif os.name() == 'posix': #Jika osnya linux atau macOs
-        return input()
+        if ascii == 0:
+            return input()
+        elif ascii == 1:
+            string = input()
+            return ord(string[0])
 
 
 def passbintang(text=""):

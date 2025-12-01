@@ -21,18 +21,20 @@ def showtable(entity):
         cursor.execute(f"Select count(*) from {entity}")
         jumlah = cursor.fetchone()
         cursor.execute(query)
-        if jumlah[0] % 5 == 0:
-            page = jumlah[0]//5
-        elif jumlah == 0:
+        if jumlah[0] == 0:
             page = 1
+        elif jumlah[0] % 5 == 0:
+            page = jumlah[0]//5
         else:
             page = jumlah[0]//5+1
+        # print("Jumlah =",jumlah[0])
         for x in range(page):
-            if jumlah == 0:
+            if jumlah[0] == 0:
+                clear()
                 print("Belum ada data ")
                 getch_()
                 clear()
-                break
+                return
             print("Halaman ke ",x+1)
             record = cursor.fetchmany(5)
             columns = [x[0] for x in cursor.description]
@@ -46,12 +48,13 @@ def showtable(entity):
                         zz.append(z)
                 mytable.add_row(zz)
             print(mytable)
-            temp = input("Masukkan opsi (join, where, group, having, order,)\n(enter untuk next page,isi sembarang untuk skip) ")
-            if temp != "":
-                break
-            else:
-                pass
-            clear()
+            getch_()
+        temp = input("Masukkan opsi (join, where, group, having, order,)\n(enter untuk next page,isi sembarang untuk skip) ")
+        if temp != "":
+            break
+        else:
+            pass
+        clear()
         query = querydefault
         if temp == "":
             break
@@ -92,7 +95,13 @@ def Showtablewithout(entity):
     cursor.execute(f"Select count(*) from {entity}")
     jumlah = cursor.fetchone()
     cursor.execute(query)
-    if jumlah[0] % 5 == 0:
+    if jumlah[0] == 0:
+        clear()
+        print("Data tidak ada")
+        getch_()
+        clear()
+        return
+    elif jumlah[0] % 5 == 0:
         page = jumlah[0]//5
     else:
         page = jumlah[0]//5+1
@@ -535,9 +544,9 @@ def BuatPesanan(id):
         record2 = cursor.fetchone()
         print(record2)
         if record2 == None:
-            id_= 1
+            id_pesanan= 1
         else:
-            id_ = record2[0] + 1 #id_pesanan
+            id_pesanan = record2[0] + 1 #id_pesanan
         cursor.execute(f"SELECT id_alamat_pengiriman, id_jalan from alamat_pengiriman where id_jalan = '{record[0]}'")
         record = cursor.fetchone() #id_alamat
         id_alamat = record[0]
@@ -552,11 +561,16 @@ def BuatPesanan(id):
         cursor.execute("SELECT id_transaksi from transaksi ORDER BY id_transaksi desc")
         record = cursor.fetchone()
         id_transaksi = record[0] + 1
-        cursor.execute(f"INSERT INTO transaksi(id_transaksi, status_transaksi, is_delete, id_metode_transaksi) Values ({id_transaksi}, 'belum membayar', '0', '{metode}')")
-        if metode == 2:
-            cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'pending', '0', '{id}', '{record[0]}','{id_alamat}')")
-        elif metode == 1:
-            cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'diproses', '0', '{id}', '{record[0]}','{id_alamat}')")
+        cursor.execute(f"SELECT jumlah_detail_pesanan*harga_satuan FROM detail_pesanan where id_pesanan = {id_}")
+        record = cursor.fetchall()
+        harga = 0
+        for x in record:
+            harga += x[0]
+
+        
+        cursor.execute(f"INSERT INTO transaksi Values ({id_transaksi}, {harga}, '{metode}')")
+        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_pesanan}',now() :: DATE, 'diproses', '0', '{id}', '{record[0]}','{id_alamat}')")
+        # cursor.execute(f"INSERT INTO pesanan(id_pesanan, tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_alamat_pengiriman) VALUES ('{id_},now() :: DATE, 'diproses', '0', '{id}', '{record[0]}','{id_alamat}')")
         cursor.execute("SELECT id_detail_pesanan from detail_pesanan ORDER BY id_detail_pesanan desc")
         record = cursor.fetchone()
         if record == None:
@@ -564,12 +578,12 @@ def BuatPesanan(id):
         else:
             id_ = record[0] + 1 #id_detail_pesanan
         print("11")
-        cursor.execute(f"SELECT id_pesanan, id_alamat_pengiriman from pesanan where id_alamat_pengiriman = '{id_alamat}'")
-        record = cursor.fetchone() #id_pesanan
+        # cursor.execute(f"SELECT id_pesanan, id_alamat_pengiriman from pesanan where id_alamat_pengiriman = '{id_alamat}'")
+        # record = cursor.fetchone() #id_pesanan
         for x in kataloglist: #belum harga satuan
             cursor.execute(f"SELECT id_katalog, harga_menu from katalog where id_katalog = {x}")
             record_harga = cursor.fetchone()
-            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_detail_pesanan, harga_satuan, id_pesanan, id_katalog) VALUES ('{id_}',{jumlah},{record_harga[1]}, {record[0]}, {x})")
+            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_detail_pesanan, harga_satuan, id_pesanan, id_katalog) VALUES ('{id_}',{jumlah},{record_harga[1]}, {id_pesanan}, {x})")
             id_ += 1
         cursor.connection.commit()
         
@@ -698,22 +712,49 @@ def Pembayaran(id):
                 zz.append(z)
         mytable.add_row(zz)
     print(mytable)
+    # while True:
+    #     id_ = input("Masukkan id yang ingin dibayar ")
+    #     if id_.isdigit():
+    #         id_ = int(id_)
+    #     elif id_ == "":
+    #         return
+    #     if any(id_ == x[0] for x in record):
+    #         cursor.execute(f"SELECT id_transaksi FROM pesanan where id_pesanan = '{id_}'")
+    #         id_transaksi = cursor.fetchone()
+    #         break
+    #     elif id_ == "":
+    #         return
+    #     else:
+    #         print("Masukkan id yang benar")
+    #         getch_()
+    #         continue
     while True:
-        id_ = input("Masukkan id yang ingin dibayar ")
-        if id_.isdigit():
-            id_ = int(id_)
-        elif id_ == "":
-            return
-        if any(id_ == x[0] for x in record):
-            cursor.execute(f"SELECT id_transaksi FROM pesanan where id_pesanan = '{id_}'")
-            id_transaksi = cursor.fetchone()
+        id_ = input ("Masukkan id yang ingin dibayar")
+        if any(id_ == x for x in record):
             break
-        elif id_ == "":
-            return
         else:
             print("Masukkan id yang benar")
-            getch_()
-            continue
+    while True:
+        # print("1. Tunai\n2. Non tunai")
+        cursor.execute("SELECT * FROM metode_transaksi")
+        pilihanmetode = cursor.fetchall()
+        index = 1
+        for x in pilihanmetode:
+            print(f"{index}. {x[1]}")
+        metode = inputint("Masukkan metode pembayaran ")
+        if metode == 1 or metode == 2:
+            break
+        else:
+            print("Masukkan pilihan yang benar")
+    cursor.execute("SELECT id_transaksi from transaksi ORDER BY id_transaksi desc")
+    record = cursor.fetchone()
+    id_transaksi = record[0] + 1
+    cursor.execute(f"INSERT INTO transaksi(id_transaksi, status_transaksi, is_delete, id_metode_transaksi, id_pesanan) Values ({id_transaksi}, 'belum membayar', '0', '{metode}', {id_})")
+    if metode == 2:
+        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'pending', '0', '{id}', '{record[0]}','{id_alamat}')")
+    elif metode == 1:
+        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'diproses', '0', '{id}', '{record[0]}','{id_alamat}')")
+
     
     cursor.execute(f"SELECT jumlah_detail_pesanan*harga_satuan FROM detail_pesanan where id_pesanan = {id_}")
     record = cursor.fetchall()
@@ -791,19 +832,19 @@ while login_status == 1:
         data_user = login_refresh(id_user)
         if data_user[1] is False: # Menu pembeli
             clear()
-            print("""
-1. Data akun (melihat dan mengedit)
-2. Membuat Pesanan
-3. Status pesanan (melihat dan menghapus)
-4. Pembayaran
-5. Log out / keluar
+            temp = select("""Data akun (melihat dan mengedit)
+Membuat Pesanan
+Status pesanan (melihat dan menghapus)
+Pembayaran
+Log out / keluar
 """)
-            temp = inputint("Masukkan menu yang diinginkan ")
+            # temp = inputint("Masukkan menu yang diinginkan ")
             if temp == 1:
                 clear()
                 ShowAkun()
-                temp = input("Tekan enter untuk keluar atau masukkan sembarang huruf untuk mengedit ")
-                if temp != "":
+                print("Tekan enter untuk keluar atau masukkan sembarang huruf untuk mengedit ")
+                temp = getch_(ascii=1)
+                if temp != 13:
                     ChangeAkunSelf(data_user[0])
             elif temp == 2:
                 BuatPesanan(data_user[0])
@@ -811,16 +852,20 @@ while login_status == 1:
             elif temp == 3 :
                 pesanan = TampilkanPesanan(data_user[0])
                 if pesanan != 0:
-                    pilihan = input("Enter jika lanjut, masukkan sembarang huruf jika ingin menghapus data")
-                    if not pilihan == "":
+                    print("Enter jika lanjut, masukkan sembarang huruf jika ingin menghapus data")
+                    temp = getch_(ascii=1)
+                    if not temp == 13:
                         clear()
                         HapusPesanan(data_user[0])
             elif temp == 4:
+                clear()
                 Pembayaran(data_user[0])
             elif temp == 5 :
                 clear()
-                temp = input("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
-                if temp == "y":
+                print("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
+                temp = getch_(ascii=1)
+                if temp == 121:
+                    clear()
                     login_status = 0
 
 ##################################################################################
