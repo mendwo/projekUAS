@@ -67,9 +67,9 @@ def select(text):
     i = 0
     for x in textt:
         if i == target:
-            print (" O ",end = "")
+            print ("O ",end = "")
         else:
-            print("   ",end="")
+            print("  ",end="")
         i += 1
         print (x)
 

@@ -126,30 +126,44 @@ def Showtablewithout(entity):
 def registrasi():
     while True:
         try:
+            cursor = connect()
+            cursor.execute("SELECT * FROM pengguna")
+            record = cursor.fetchall()
             username = input("Masukkan username dengan jumlah 4-16 karakter (kosongkan untuk keluar) ")
             if username == "":
                 clear()
                 break
             passw = passbintang("Masukkan password dengan jumlah 4-16 karakter ")
             if len(username) <= 16 and len(username) >= 4 and  len(passw) <= 16 and len(passw) >= 4 :
-                inputvalid = 0
-                while inputvalid < 3 : # Data diri dan check input
-                    inputvalid = 0
+                while True : # Data diri dan check input
                     nama= input("Masukkan nama lengkap anda ")
-                    if nama and all(c.isalpha() or c.isspace() for c in nama):
-                        inputvalid +=1
-                    telp= input("Masukkan nomer telepon anda ")
-                    if telp and all(c.isdigit() or c in "+-" for c in telp):
-                        inputvalid += 1
-                    email= input ("Masukkan email anda ")
-                    if email and "@" in email and "." in email:
-                        inputvalid += 1
-                    if inputvalid < 3 : 
-                        print ("Masukkan data yang valid")
-                        clear()
+                    while True:
+                        if nama and all(c.isalpha() or c.isspace() for c in nama):
+                            inputvalid +=1
+                            break
+                        else:
+                            print("Masukkan data yang valid yang berisi huruf dan spasi saja")
+                    while True:
+                        telp= input("Masukkan nomer telepon anda ")
+                        if telp and all(c.isdigit() or c in "+-" for c in telp):
+                            if not any(telp == x[5] for x in record):
+                                inputvalid += 1
+                                break
+                            else:
+                                print("Nomer sudah dipakai, silahkan masukkan nomer yang lainnya")
+                        else:
+                            print("Masukkan data yang valid yang mengandung angka atau simbol +- saja ")
+
+                    while True:
+                        email= input ("Masukkan email anda ")
+                        if email and "@" in email and "." in email:
+                            inputvalid += 1
+                            break
+                        else:
+                            print ("Masukkan data yang valid yang berisi email lengkap dengan @ dan . ")
+
                     else:
                         break
-                cursor = connect()
                 cursor.execute("SELECT id_pengguna from pengguna ORDER BY id_pengguna desc")
                 record = cursor.fetchone()
                 id = record[0] + 1
@@ -835,6 +849,7 @@ while True:
 # 3. Show Tabel
 # 0. Keluar""")
     # pilihanmenu= inputint("Masukkan menu yang ingin dipilih: ")
+    print("SELAMAT DATANG DI TRACRCOFFE \nAplikasi Sistem Informasi Penjualan dan \nPengelolaan Biji Kopi Berbasis Digital\n")
     pilihanmenu = select("Registrasi \nLogin \nShow tabel \nKeluar")
     if pilihanmenu == 1:
         clear()
