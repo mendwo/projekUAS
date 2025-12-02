@@ -852,8 +852,6 @@ def Pembayaran(id): #Engga kepake
 login_status= 0
 clear()
 
-Laporan()
-
 while True:
 #     print("""Menu :
 # 1. Registrasi
