@@ -743,7 +743,11 @@ def Laporan():#Work in Progress
     cursor = connect()
     temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
     if temp == 1:
-        cursor.execute(f"SELECT COUNT(p.id_pesanan) as {"Jumlah transaksi"}, SUM(t.nominal) from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi")
+        cursor.execute(f"SELECT COUNT(p.id_pesanan) AS \"Jumlah transaksi\", "
+    "SUM(t.nominal) "
+    "FROM pesanan p JOIN transaksi t "
+    "ON p.id_transaksi = t.id_transaksi"
+        )
         record = cursor.fetchall()
         columns = [x[0] for x in cursor.description]
         mytable = PrettyTable(columns)
@@ -751,6 +755,124 @@ def Laporan():#Work in Progress
             mytable.add_row(y)
         print(mytable)
 
+# ...existing code...
+def Laporan():  # Work in Progress 
+    cursor = connect()
+    temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
+    if temp == 1:
+        tahun = inputint("Masukkan tahun: ")
+        laporan_bulanan(tahun)
+        getch_()
+    elif temp == 2:
+        tahun = inputint("Masukkan tahun: ")
+        laporan_quartal(tahun)
+        getch_()
+    elif temp == 3:
+        laporan_tahunan()
+        getch_()
+    else:
+        print("Pilihan tidak valid")
+        getch_()
+
+# ...existing code...
+def laporan_bulanan(tahun):
+    cursor = connect()
+    try:
+        query = f"""
+            SELECT 
+                EXTRACT(MONTH FROM p.tanggal_pesanan) AS bulan,
+                SUM(t.nominal) AS total_penjualan,
+                COUNT(p.id_pesanan) AS jumlah_transaksi
+            FROM pesanan p
+            JOIN transaksi t ON p.id_transaksi = t.id_transaksi
+            WHERE EXTRACT(YEAR FROM p.tanggal_pesanan) = {tahun}
+            AND p.is_delete = '0'
+            GROUP BY 1
+            ORDER BY 1;
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    except Exception as e:
+        print("Error saat mengambil data:", e)
+        return
+
+    if not rows:
+        print(f"Tidak ada data untuk tahun {tahun}")
+        return
+
+    table = PrettyTable()
+    table.field_names = ["Bulan", "Total Penjualan", "Jumlah Transaksi"]
+    for r in rows:
+        table.add_row(r)
+
+    print("\n=== LAPORAN PENJUALAN BULANAN ===")
+    print(table)
+
+def laporan_quartal(tahun):
+    cursor = connect()
+    try:
+        query = f"""
+            SELECT
+                CEILING((EXTRACT(MONTH FROM p.tanggal_pesanan)::numeric) / 3) AS kwartal,
+                SUM(t.nominal) AS total_penjualan,
+                COUNT(p.id_pesanan) AS jumlah_transaksi
+            FROM pesanan p
+            JOIN transaksi t ON p.id_transaksi = t.id_transaksi
+            WHERE EXTRACT(YEAR FROM p.tanggal_pesanan) = {tahun}
+            AND p.is_delete = '0'
+            GROUP BY 1
+            ORDER BY 1;
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    except Exception as e:
+        print("Error saat mengambil data:", e)
+        return
+
+    if not rows:
+        print(f"Tidak ada data untuk tahun {tahun}")
+        return
+
+    table = PrettyTable()
+    table.field_names = ["Kwartal", "Total Penjualan", "Jumlah Transaksi"]
+    for r in rows:
+        table.add_row(r)
+
+    print("\n=== LAPORAN PENJUALAN QUARTAL ===")
+    print(table)
+
+def laporan_tahunan():
+    cursor = connect()
+    try:
+        query = """
+            SELECT
+                EXTRACT(YEAR FROM p.tanggal_pesanan) AS tahun,
+                SUM(t.nominal) AS total_penjualan,
+                COUNT(p.id_pesanan) AS jumlah_transaksi
+            FROM pesanan p
+            JOIN transaksi t ON p.id_transaksi = t.id_transaksi
+            WHERE p.is_delete = '0'
+            GROUP BY 1
+            ORDER BY 1;
+        """
+        cursor.execute(query)
+        rows = cursor.fetchall()
+    except Exception as e:
+        print("Error saat mengambil data:", e)
+        return
+
+    if not rows:
+        print("Tidak ada data tahunan")
+        return
+
+    table = PrettyTable()
+    table.field_names = ["Tahun", "Total Penjualan", "Jumlah Transaksi"]
+    for r in rows:
+        table.add_row(r)
+
+    print("\n=== LAPORAN PENJUALAN TAHUNAN ===")
+    print(table)
+# ...existing code...
 
 def Pembayaran(id): #Engga kepake
     clear()
