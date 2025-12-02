@@ -643,7 +643,7 @@ def BuatPesanan(id):
 def StatusPesanan():
     pass
 
-def Katalog(): ## Work in Progress / belum kelar
+def Katalog():
     # clear()
     Showtablewithout('katalog')
     cursor = connect()
@@ -739,8 +739,18 @@ def Katalog(): ## Work in Progress / belum kelar
         getch_()
     
 
-def Laporan():
-    pass
+def Laporan():#Work in Progress 
+    cursor = connect()
+    temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
+    if temp == 1:
+        cursor.execute(f"SELECT COUNT(p.id_pesanan) as {"Jumlah transaksi"}, SUM(t.nominal) from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi")
+        record = cursor.fetchall()
+        columns = [x[0] for x in cursor.description]
+        mytable = PrettyTable(columns)
+        for y in record:
+            mytable.add_row(y)
+        print(mytable)
+
 
 def Pembayaran(id): #Engga kepake
     clear()
@@ -842,6 +852,8 @@ def Pembayaran(id): #Engga kepake
 login_status= 0
 clear()
 
+Laporan()
+
 while True:
 #     print("""Menu :
 # 1. Registrasi
@@ -849,8 +861,11 @@ while True:
 # 3. Show Tabel
 # 0. Keluar""")
     # pilihanmenu= inputint("Masukkan menu yang ingin dipilih: ")
-    print("SELAMAT DATANG DI TRACRCOFFE \nAplikasi Sistem Informasi Penjualan dan \nPengelolaan Biji Kopi Berbasis Digital\n")
-    pilihanmenu = select("Registrasi \nLogin \nShow tabel \nKeluar")
+    print("SELAMAT DATANG DI TRACRCOFFE \nAplikasi Sistem Informasi Penjualan dan \nPengelolaan Biji Kopi Berbasis Digital")
+    print("Pencet apa saja untuk memasuki aplikasi.....",end='',flush=True)
+    getch_()
+    clear()
+    pilihanmenu = select("Registrasi \nLogin \nShow tabel \nKeluar","---TRACRCOFFE---")
     if pilihanmenu == 1:
         clear()
         registrasi()

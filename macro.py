@@ -59,12 +59,15 @@ def clear():
         
     return
 
-def select(text):
+def select(text,header=""):
     textt = text.splitlines()
     # print(textt)
     target = 0
 
     i = 0
+
+    if header != "":
+        print (header)
     for x in textt:
         if i == target:
             print ("O ",end = "")
@@ -107,11 +110,14 @@ def select(text):
         elif target == -1:
             target = len(textt)-1
 
+        if header != "":
+            print (header)
+
         for x in textt:
             if i == target:
-                print (" O ",end = "")
+                print ("O ",end = "")
             else:
-                print("   ",end="")
+                print("  ",end="")
             i += 1
             print (x)
         # print (target)
