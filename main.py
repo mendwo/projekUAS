@@ -749,6 +749,10 @@ def Laporan():#Work in Progress
         print(mytable)
 
 
+def statuspengiriman():
+    pass
+
+
 def Pembayaran(id): #Engga kepake
     clear()
     cursor = connect()
@@ -833,7 +837,7 @@ def Pembayaran(id): #Engga kepake
                 finally:
                     print("Pesanan berhasil dibayar")
                     getch_()
-                    break
+                break
         elif bayar < harga:
             print("Nominal anda kurang ")
             getch_()
