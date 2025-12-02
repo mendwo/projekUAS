@@ -4,9 +4,9 @@ from psycopg2 import Error,sql
 def connect():
     connection = psycopg2.connect(
     user="postgres",
-    password="123",
-    host = "127.0.0.1",
+    password="acil123",
+    host = "localhost",
     port = "5432",
-    database="Projek_Final")
+    database="tembakau")
     cursor = connection.cursor()
     return cursor
