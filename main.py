@@ -14,7 +14,7 @@ def showtable(entity):
     query = querydefault
     orderlist = []
     orderlistasc = []
-    # offset = 0
+    
     # limit = f" limit 10 "
     while True:
         # print("query= ", query)
@@ -139,7 +139,6 @@ def registrasi():
                     nama= input("Masukkan nama lengkap anda ")
                     while True:
                         if nama and all(c.isalpha() or c.isspace() for c in nama):
-                            inputvalid +=1
                             break
                         else:
                             print("Masukkan data yang valid yang berisi huruf dan spasi saja")
@@ -147,7 +146,6 @@ def registrasi():
                         telp= input("Masukkan nomer telepon anda ")
                         if telp and all(c.isdigit() or c in "+-" for c in telp):
                             if not any(telp == x[5] for x in record):
-                                inputvalid += 1
                                 break
                             else:
                                 print("Nomer sudah dipakai, silahkan masukkan nomer yang lainnya")
@@ -157,25 +155,24 @@ def registrasi():
                     while True:
                         email= input ("Masukkan email anda ")
                         if email and "@" in email and "." in email:
-                            inputvalid += 1
                             break
                         else:
                             print ("Masukkan data yang valid yang berisi email lengkap dengan @ dan . ")
 
                     else:
                         break
-                cursor.execute("SELECT id_pengguna from pengguna ORDER BY id_pengguna desc")
-                record = cursor.fetchone()
-                id = record[0] + 1
-                cursor.execute("INSERT INTO pengguna(id_pengguna,is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (%s,False,%s, %s,%s,%s,%s,False)", (id,nama,username, passw,telp,email))
-                cursor.connection.commit()
-                clear()
-                print("Berhasil registrasi")
-                getch_()
-                clear()
-                break
-            else:
-                print("jumlah karakter username atau password tidak memenuhi syarat...")
+                    cursor.execute("SELECT id_pengguna from pengguna ORDER BY id_pengguna desc")
+                    record = cursor.fetchone()
+                    id = record[0] + 1
+                    cursor.execute("INSERT INTO pengguna(id_pengguna,is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (%s,False,%s, %s,%s,%s,%s,False)", (id,nama,username, passw,telp,email))
+                    cursor.connection.commit()
+                    clear()
+                    print("Berhasil registrasi")
+                    getch_()
+                    clear()
+                    break
+                else:
+                    print("jumlah karakter username atau password tidak memenuhi syarat...")
                 getch_()
         except (Exception,Error) as error:
             print(error)

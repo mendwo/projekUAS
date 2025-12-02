@@ -7,6 +7,6 @@ def connect():
     password="acil123",
     host = "localhost",
     port = "5432",
-    database="tembakau")
+    database="coffe")
     cursor = connection.cursor()
     return cursor
