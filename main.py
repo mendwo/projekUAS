@@ -51,7 +51,7 @@ def showtable(entity):
                 mytable.add_row(zz)
             print(mytable)
             getch_()
-        temp = input("Masukkan opsi (join, where, group, having, order,)\n(enter untuk next page,isi sembarang untuk skip) ")
+        temp = input("Masukkan opsi (join, where, group, having, order,)\n(enter untuk next page,isi sembarang untuk skip) #WIP, belum jadi")
         if temp != "":
             break
         else:
@@ -122,8 +122,8 @@ def Showtablewithout(entity):
             mytable.add_row(zz)
         print(mytable)
         getch_()
-#menu registrasi
-def registrasi():
+
+def registrasi(): # Menu registrasi
     while True:
         try:
             cursor = connect()
@@ -135,45 +135,85 @@ def registrasi():
                 break
             passw = passbintang("Masukkan password dengan jumlah 4-16 karakter ")
             if len(username) <= 16 and len(username) >= 4 and  len(passw) <= 16 and len(passw) >= 4 :
+                index = 1
                 while True : # Data diri dan check input
-                    nama= input("Masukkan nama lengkap anda ")
                     while True:
+                        nama= inputlog("Masukkan nama lengkap anda ")
                         if nama and all(c.isalpha() or c.isspace() for c in nama):
+                            index +=1
                             break
                         else:
                             print("Masukkan data yang valid yang berisi huruf dan spasi saja")
+                            getch_()
+                            clear()
+                            logpop()
+                            logprint(index)
                     while True:
-                        telp= input("Masukkan nomer telepon anda ")
+                        telp= inputlog("Masukkan nomer telepon anda ")
                         if telp and all(c.isdigit() or c in "+-" for c in telp):
                             if not any(telp == x[5] for x in record):
+                                index += 1
                                 break
                             else:
                                 print("Nomer sudah dipakai, silahkan masukkan nomer yang lainnya")
+                                getch_()
+                                clear()
+                                logpop()
+                                logprint(index)
                         else:
                             print("Masukkan data yang valid yang mengandung angka atau simbol +- saja ")
+                            getch_()
+                            clear()
+                            logpop()
+                            logprint(index)
 
                     while True:
-                        email= input ("Masukkan email anda ")
+                        email= inputlog("Masukkan email anda ")
                         if email and "@" in email and "." in email:
-                            break
+                            if not any(email == x[6] for x in record):
+                                index += 1
+                                break
+                            else:
+                                print("Email sudah dipakai, silahkan masukkan email yang lainnya")
+                                getch_()
+                                clear()
+                                logpop()
+                                logprint(index)
                         else:
                             print ("Masukkan data yang valid yang berisi email lengkap dengan @ dan . ")
-
-                    else:
+                            getch_()
+                            clear()
+                            logpop()
+                            logprint(index)
+                    
+                    clear()
+                    print("Username:",username)
+                    print("Password:",passw)
+                    print("Nama:",nama)
+                    print("No telepon:",telp)
+                    print("Email:",email)
+                    temp = input ("Apakah data sudah benar? ketik y jika benar ")
+                    if temp == "y":
                         break
-                    cursor.execute("SELECT id_pengguna from pengguna ORDER BY id_pengguna desc")
-                    record = cursor.fetchone()
-                    id = record[0] + 1
-                    cursor.execute("INSERT INTO pengguna(id_pengguna,is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (%s,False,%s, %s,%s,%s,%s,False)", (id,nama,username, passw,telp,email))
-                    cursor.connection.commit()
-                    clear()
-                    print("Berhasil registrasi")
-                    getch_()
-                    clear()
-                    break
-                else:
-                    print("jumlah karakter username atau password tidak memenuhi syarat...")
+                    else:
+                        clear()
+                        return
+
+                cursor.execute("SELECT id_pengguna from pengguna ORDER BY id_pengguna desc")
+                record = cursor.fetchone()
+                id = record[0] + 1
+                cursor.execute("INSERT INTO pengguna(id_pengguna,is_admin,nama_lengkap,username,passwords,no_telpon,email,is_delete) VALUES (%s,False,%s, %s,%s,%s,%s,False)", (id,nama,username, passw,telp,email))
+                cursor.connection.commit()
+                clear()
+                print("Berhasil registrasi")
                 getch_()
+                clear()
+                break
+
+            else:
+                print("jumlah karakter username atau password tidak memenuhi syarat...")
+                getch_()
+                clear()
         except (Exception,Error) as error:
             print(error)
 
@@ -269,7 +309,9 @@ def ChangeAkunAll():
         getch_()
 
 def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan query nanti
-
+    clear()
+    ShowAkun()
+    print("")
     count = 0
     cursor = connect()
     cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
@@ -417,6 +459,8 @@ def BuatPesanan(id):
         while True:
             katalog = input("Masukkan id barang yang ingin dibeli, kosongkan jika ingin selesai ")
             if katalog == "":
+                if len(kataloglist) == 0:
+                    print("Anda tidak memesan apapun....")
                 break
             elif katalog.isdigit():
                 katalog = int(katalog)
@@ -736,17 +780,40 @@ def Katalog():
         getch_()
     
 
-def Laporan():#Work in Progress 
+def Laporan():
     cursor = connect()
     temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
+    clear()
     if temp == 1:
-        cursor.execute(f"SELECT COUNT(p.id_pesanan) as {"Jumlah transaksi"}, SUM(t.nominal) from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi")
+        cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-MM') as Bulan, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
         record = cursor.fetchall()
         columns = [x[0] for x in cursor.description]
         mytable = PrettyTable(columns)
         for y in record:
             mytable.add_row(y)
         print(mytable)
+        getch_()
+    elif temp == 2:
+        cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-\"Q\"Q') as Kuartal, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
+        record = cursor.fetchall()
+        columns = [x[0] for x in cursor.description]
+        mytable = PrettyTable(columns)
+        for y in record:
+            mytable.add_row(y)
+        print(mytable)
+        getch_()
+    if temp == 3:
+        cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY') as \"Tahun\", COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
+        record = cursor.fetchall()
+        columns = [x[0] for x in cursor.description]
+        mytable = PrettyTable(columns)
+        for y in record:
+            mytable.add_row(y)
+        print(mytable)
+        getch_()
+    elif temp == 0:
+        return
+
 
 
 def statuspengiriman():
@@ -847,12 +914,17 @@ def Pembayaran(id): #Engga kepake
             getch_()
             clear()
 
-
+################################################################
+################################################################
 ################################################################
 
 login_status= 0
 clear()
 
+print("SELAMAT DATANG DI TRACRCOFFE \n \nAplikasi Sistem Informasi Penjualan dan \nPengelolaan Biji Kopi Berbasis Digital\n")
+print("Pencet apa saja untuk memasuki aplikasi.....",end='',flush=True)
+getch_() #Bug(?)
+clear()
 while True:
 #     print("""Menu :
 # 1. Registrasi
@@ -860,11 +932,7 @@ while True:
 # 3. Show Tabel
 # 0. Keluar""")
     # pilihanmenu= inputint("Masukkan menu yang ingin dipilih: ")
-    print("SELAMAT DATANG DI TRACRCOFFE \nAplikasi Sistem Informasi Penjualan dan \nPengelolaan Biji Kopi Berbasis Digital")
-    print("Pencet apa saja untuk memasuki aplikasi.....",end='',flush=True)
-    getch_()
-    clear()
-    pilihanmenu = select("Registrasi \nLogin \nShow tabel \nKeluar","---TRACRCOFFE---")
+    pilihanmenu = select("Registrasi \nLogin \nShow tabel (for develop only) \nKeluar","---TRACRCOFFE---")
     if pilihanmenu == 1:
         clear()
         registrasi()
@@ -937,14 +1005,13 @@ Log out / keluar
         
         elif data_user[1] is True: # Menu admin
             clear()
-            print("""
-1. Data akun (melihat mengedit akun admin, melihat akun pengguna)
-2. Katalog menu (melihat,mengedit)
-3. Status pesanan (melihat,mengedit status)
-4. Laporan penjualan (melihat,menambah)
-5. Log out / keluar
+            temp = select("""Data akun (melihat mengedit akun admin, melihat akun pengguna)
+Katalog menu (melihat,mengedit)
+Status pesanan (melihat,mengedit status)
+Laporan penjualan (melihat,menambah)
+Log out / keluar
 """)
-            temp =inputint("Masukkan angka ")
+            # temp =inputint("Masukkan angka ")
             if temp == 1:
                 print("1. Data user\n" 
                 "2. Data admin")

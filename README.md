@@ -2,8 +2,7 @@
 
 
 To do list:
-1. pesanan ditambah id_transaksi
-2. pemasukan_stok ditambah (admin)
-3. admin bisa ngedit katalog(hapus dan tambah)
-4. pembayaran ditambah ke buatpesanan
-5. buatpesanan dicek lagi, kayaknya kurang buat reference dan validasi
+1. Laporan (admin)
+2. Ubah Status (admin)
+3. Bug(?) di getch_() awal, pilihan tidak mulai dari 0 jika user input arrow key up / dow. Kemungkinan getch_() awal bocor ke getch_() select
+4. Filter
