@@ -585,17 +585,17 @@ def BuatPesanan(id):
         for x in kataloglist: #belum harga satuan
             cursor.execute(f"SELECT id_katalog, harga_menu from katalog where id_katalog = {x}")
             record_harga = cursor.fetchone()
-            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_detail_pesanan, harga_satuan, id_pesanan, id_katalog) VALUES ('{id_}',{jumlah},{jumlahlist[index]}, {id_pesanan}, {x})")
+            cursor.execute(f"INSERT INTO detail_pesanan(id_detail_pesanan,jumlah_detail_pesanan, harga_satuan, id_pesanan, id_katalog) VALUES ('{id_}',{jumlahlist[index]},{record_harga[0]}, {id_pesanan}, {x})")
             id_ += 1
             index += 1
         # cursor.execute(f"SELECT p.id_pesanan, p.tanggal_pesanan, p.status_pesanan, t.nominal, p.tanggal_pengiriman, m.nama_metode_transaksi, j.nama_jalan || ', ' || k.nama_kecamatan || ', ' || ka.nama_kabupaten AS Alamat FROM pesanan p, jalan j, kecamatan k, kabupaten ka, alamat_pengiriman a, transaksi t, metode_transaksi m where p.is_delete = '0' and id_pengguna = '{id}' and p.id_alamat_pengiriman = a.id_alamat_pengiriman and a.id_jalan = j.id_jalan and j.id_kecamatan = k.id_kecamatan and k.id_kabupaten = ka.id_kabupaten and p.id_transaksi = t.id_transaksi and t.id_metode_transaksi = m.id_metode_transaksi")
         while True:
             if metode == 1:
-                temp = input(f"Harga yang harus dibayarkan adalah {harga} melalui metode tunai \nMasukkan huruf y jika benar")
+                temp = input(f"Harga yang harus dibayarkan adalah {harga} melalui metode tunai \nMasukkan huruf y jika benar ")
                 if temp == "y":
                     break
             elif metode == 2:
-                temp = input(f"Harga yang harus dibayarkan adalah {harga} melalui metode Non tunai \nMasukkan huruf y jika benar")
+                temp = input(f"Harga yang harus dibayarkan adalah {harga} melalui metode Non tunai \nMasukkan huruf y jika benar ")
                 if temp == "y":
                     break
 
@@ -708,7 +708,7 @@ def Katalog(): ## Work in Progress / belum kelar
 def Laporan():
     pass
 
-def Pembayaran(id):
+def Pembayaran(id): #Engga kepake
     clear()
     cursor = connect()
     cursor.execute(f"SELECT p.id_pesanan, p.tanggal_pesanan, p.status_pesanan, t.nominal, p.tanggal_pengiriman, m.nama_metode_transaksi, j.nama_jalan || ', ' || k.nama_kecamatan || ', ' || ka.nama_kabupaten AS Alamat FROM pesanan p, jalan j, kecamatan k, kabupaten ka, alamat_pengiriman a, transaksi t, metode_transaksi m where p.is_delete = '0' and id_pengguna = '{id}' and p.id_alamat_pengiriman = a.id_alamat_pengiriman and a.id_jalan = j.id_jalan and j.id_kecamatan = k.id_kecamatan and k.id_kabupaten = ka.id_kabupaten and p.id_transaksi = t.id_transaksi and t.id_metode_transaksi = m.id_metode_transaksi")
@@ -850,8 +850,7 @@ while login_status == 1:
             clear()
             temp = select("""Data akun (melihat dan mengedit)
 Membuat Pesanan
-Status pesanan (melihat dan menghapus)
-Pembayaran
+Status pesanan
 Log out / keluar
 """)
             # temp = inputint("Masukkan menu yang diinginkan ")
@@ -873,10 +872,10 @@ Log out / keluar
                     if not temp == 13:
                         clear()
                         HapusPesanan(data_user[0])
-            elif temp == 4:
-                clear()
-                Pembayaran(data_user[0])
-            elif temp == 5 :
+            # elif temp == 4:
+            #     clear()
+            #     Pembayaran(data_user[0])
+            elif temp == 4 :
                 clear()
                 print("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
                 temp = getch_(ascii=1)
