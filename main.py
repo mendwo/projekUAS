@@ -1092,7 +1092,7 @@ Log out / keluar
                 print("1. Data user\n" 
                 "2. Data admin")
                 temp = inputint("Masukkan angka ")
-                if temp == 1: #Data all
+                if temp == 1: #semua data
                     ShowAkunAll()
                     temp= input("Tekan enter untuk keluar atau isi dengan sembarang huruf untuk mengedit ")
                     clear()
@@ -1100,7 +1100,7 @@ Log out / keluar
                         pass
                     else :
                         ChangeAkunAll()
-                elif temp == 2: #Data sendiri
+                elif temp == 2: #Data sendiri (admin)
                     clear()
                     ShowAkun()
                     temp = input("Tekan enter untuk keluar atau isi dengan sembarang huruf untuk mengedit ")
@@ -1109,7 +1109,7 @@ Log out / keluar
             elif temp == 2:
                 Katalog()
             elif temp == 3 :
-                StatusPesanan()
+                ubahStatuspesanan()
             elif temp == 4 :
                 Laporan()
             elif temp == 5 :
