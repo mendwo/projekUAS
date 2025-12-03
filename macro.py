@@ -123,3 +123,38 @@ def select(text,header=""):
         # print (target)
         # print (type(c))
     return target+1
+
+log = []
+
+def printlog(text): # Print dan simpan ke log
+    if text == "clear":
+        return log.clear()
+    
+    print(text)
+    log.append(text)
+
+def logprint(value=0): # Print log. bisa cuman print beberapa log terakhir pakai value
+    if value != 0:
+        start = len(log) - value
+    else:
+        start = 0
+    index = 0
+    for x in log:
+        # print(index)
+        if index < start:
+            pass
+        else:
+            print(x)
+        index +=1
+        
+def logpop(): #Hapus yg terakhir
+    log.pop(-1)
+
+def inputlog(text):
+    if not type(text) == str:
+        return print("Tolong masukkan nilai string")
+    a = input(text)
+    b = text + a
+    log.append(b)
+    
+    return a
