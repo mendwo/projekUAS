@@ -681,8 +681,6 @@ def BuatPesanan(id):
         print(error)
         return
 
-def StatusPesanan():
-    pass
 
 def Katalog():
     # clear()
@@ -814,10 +812,88 @@ def Laporan():
     elif temp == 0:
         return
 
+def statusPesanan(id_pengguna):
+    clear()
+    try:
+        cursor = connect() #mencoba terhubung
+        cursor.execute(f"""
+                      SELECT p.id_pesanan, p.tanggal_pesanan, p.status_pesanan, p.tanggal_pengiriman
+                      FROM pesanan p
+                      WHERE p.id_pengguna = {id_pengguna} AND p.is_delete = '0' 
+                      ORDE BY p.id_pesanan ASC
+                      """)
+        record = cursor.fetchall()
 
+        while True:
+            if len(record) == 0:
+                print("anda belum punya pesanan")
+            else:
+                columns = [x[0] for x in cursor.description]
+                mytable = PrettyTable(columns)
+                for a in record:
+                    ab = []
+                    for b in a:
+                        ab.append("-" if b is None else b)
+                    mytable.add_row(ab)
+                print(mytable)
+            pilih = input("tekan Enter untu keluar")
+            if pilih =="":
+                break
+    except(Exception, Error) as error:
+        print("Terdapat kesalahan:", error)
 
-def statuspengiriman():
-    pass
+    finally:
+        if cursor.connection:
+            cursor.close()
+            cursor.connection.close()
+
+def ubahStatuspesanan(id_pesanan):
+    try:
+        cursor = connect() #mecoba terhubung
+        cursor.execute(f"SELECT status_pesanan FROM pesanan WHERE id_pesanan = {id_pesanan} AND is_delete = '0")
+        record = cursor.fetchone()
+        while True:
+            if record is None:
+                print("Maaf, pesanan tidak ditemukan.")
+                break
+            print(f"status pesanan saat ini: {record[0]}")
+            print("pilih status baru:")
+            print("1. Diproses")
+            print("2. Dikirim")
+            print("3. Selesai")
+            print("4. Dibatalkan")
+
+            piltus = input("Masukkan id status baru:")        # piltus = pilihan status
+            if piltus == "1":                          
+                staru = "diproses"                          # staru = status baru
+            elif piltus == "2":
+                staru = "dikirim"
+            elif piltus == "3":
+                staru = "selesai"
+            elif piltus == "4":
+                staru = "dibatalkan"
+            else:
+                print("pilihan tidak valid")
+                return
+            
+            
+            # memperbaharui ke database
+            cursor.execute("""
+                        UPDATE pesanan SET status_pesanan = %s, tanggal_pengiriman = now()::DATE
+                        WHERE id_pesanan = %s""", (staru, id_pesanan))
+            cursor.connection.commit()
+            print(f"Status pesanan {id_pesanan} berhasil diperbaharuhi menjadi '{staru}.")
+            
+            pilih = input("tekan Enter untu keluar")
+            if pilih =="":
+                break
+    except(Exception, Error) as error:
+        print("Terdapat kesalahan:", error)
+
+    finally:
+        if cursor.connection:
+            cursor.close()
+            cursor.connection.close()
 
 
 def Pembayaran(id): #Engga kepake
