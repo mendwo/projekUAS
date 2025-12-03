@@ -4,19 +4,101 @@ from prettytable import from_db_cursor, PrettyTable
 from macro import *
 from connectsql import *
 
-### Note : Sisa fitur sedang menunggu konfirmasi dari basda benar atau tidak. Daripada kerja dua kali
 
-#fff
 
-def showtable(entity):
-    querydefault = f"SELECT * FROM {entity} ORDER BY id_{entity} asc"
-    ordercount = 0
-    query = querydefault
-    orderlist = []
-    orderlistasc = []
-    
-    # limit = f" limit 10 "
-    while True:
+def showtable(entity): #Tampilkan menu dengan fitur order jika diperlukan
+    try:
+        querydefault = f"SELECT * FROM {entity} ORDER BY id_{entity} asc"
+        ordercount = 0
+        query = querydefault
+        orderlist = []
+        orderlistasc = []
+        
+        # limit = f" limit 10 "
+        while True:
+            # print("query= ", query)
+            if not 'cursor' in locals() and globals(): # may not work/needed
+                cursor = connect()
+            cursor.execute(f"Select count(*) from {entity}")
+            jumlah = cursor.fetchone()
+            cursor.execute(query)
+            if jumlah[0] == 0:
+                page = 1
+            elif jumlah[0] % 5 == 0:
+                page = jumlah[0]//5
+            else:
+                page = jumlah[0]//5+1
+            # print("Jumlah =",jumlah[0])
+            index = 0
+            for x in range(page):
+                if jumlah[0] == 0:
+                    clear()
+                    print("Belum ada data ")
+                    getch_()
+                    clear()
+                    return
+                logprint(index)
+                printlog(f"Halaman ke {x+1}")
+                record = cursor.fetchmany(5)
+                columns = [x[0] for x in cursor.description]
+                mytable = PrettyTable(columns)
+                for y in record:
+                    zz = []
+                    for z in y:
+                        if z is None:
+                            zz.append("-")
+                        else:
+                            zz.append(z)
+                    mytable.add_row(zz)
+                printlog(mytable)
+                temp = input("Masukkan order jika ingin mengurutkan, enter jika ingin pergi ke halaman berikutnya \natau isi sembarang jika ingin pergi ke halaman terakhir... ")
+                if temp != "":
+                    break
+                else:
+                    index += 2
+                    clear()
+                    pass
+                # getch_()
+            # clear()
+            query = querydefault
+            if temp == "":
+                break
+            # elif temp == "join":
+            #     pass
+            # elif temp == "where":
+            #     pass
+            # elif temp == "group":
+            #     pass
+            # elif temp == "having":
+            #     pass
+            elif temp == "order":
+                ordercount += 1
+                order= input("Masukkan order by kolom apa ")
+                orderlist.append(order)
+                asc = input("Enter jika asc")
+                orderlistasc.append(asc)
+                for x in range(ordercount):
+                    if x == 0 :
+                        query = query + f" ORDER BY {orderlist[x]}"
+                    else:   
+                        query = query + f", {orderlist[x]}"
+                    if orderlistasc[x] == "":
+                        query = query + " asc"
+                    else:
+                        query = query + " desc"
+            else:
+                break
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
+
+def Showtablewithout(entity): #Tampilkan tabel tanpa order dll
+    try:
+        query = f"SELECT * FROM {entity} ORDER BY id_{entity} asc"
+        # offset = 0
+        # limit = f" limit 10 "
+        
         # print("query= ", query)
         if not 'cursor' in locals() and globals(): # may not work/needed
             cursor = connect()
@@ -24,19 +106,16 @@ def showtable(entity):
         jumlah = cursor.fetchone()
         cursor.execute(query)
         if jumlah[0] == 0:
-            page = 1
+            clear()
+            print("Data tidak ada")
+            getch_()
+            clear()
+            return
         elif jumlah[0] % 5 == 0:
             page = jumlah[0]//5
         else:
             page = jumlah[0]//5+1
-        # print("Jumlah =",jumlah[0])
         for x in range(page):
-            if jumlah[0] == 0:
-                clear()
-                print("Belum ada data ")
-                getch_()
-                clear()
-                return
             print("Halaman ke ",x+1)
             record = cursor.fetchmany(5)
             columns = [x[0] for x in cursor.description]
@@ -51,77 +130,11 @@ def showtable(entity):
                 mytable.add_row(zz)
             print(mytable)
             getch_()
-        temp = input("Masukkan opsi (join, where, group, having, order,)\n(enter untuk next page,isi sembarang untuk skip) #WIP, belum jadi")
-        if temp != "":
-            break
-        else:
-            pass
-        # clear()
-        query = querydefault
-        if temp == "":
-            break
-        elif temp == "join":
-            pass
-        elif temp == "where":
-            pass
-        elif temp == "group":
-            pass
-        elif temp == "having":
-            pass
-        elif temp == "order":
-            ordercount += 1
-            order= input("Masukkan order by kolom apa ")
-            orderlist.append(order)
-            asc = input("Enter jika asc")
-            orderlistasc.append(asc)
-            for x in range(ordercount):
-                if x == 0 :
-                    query = query + f" ORDER BY {orderlist[x]}"
-                else:   
-                    query = query + f", {orderlist[x]}"
-                if orderlistasc[x] == "":
-                    query = query + " asc"
-                else:
-                    query = query + " desc"
-        else:
-            break
-
-def Showtablewithout(entity):
-    query = f"SELECT * FROM {entity} ORDER BY id_{entity} asc"
-    # offset = 0
-    # limit = f" limit 10 "
-    
-    # print("query= ", query)
-    if not 'cursor' in locals() and globals(): # may not work/needed
-        cursor = connect()
-    cursor.execute(f"Select count(*) from {entity}")
-    jumlah = cursor.fetchone()
-    cursor.execute(query)
-    if jumlah[0] == 0:
-        clear()
-        print("Data tidak ada")
-        getch_()
-        clear()
-        return
-    elif jumlah[0] % 5 == 0:
-        page = jumlah[0]//5
-    else:
-        page = jumlah[0]//5+1
-    for x in range(page):
-        print("Halaman ke ",x+1)
-        record = cursor.fetchmany(5)
-        columns = [x[0] for x in cursor.description]
-        mytable = PrettyTable(columns)
-        for y in record:
-            zz = []
-            for z in y:
-                if z is None:
-                    zz.append("-")
-                else:
-                    zz.append(z)
-            mytable.add_row(zz)
-        print(mytable)
-        getch_()
+        
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
 
 def registrasi(): # Menu registrasi
     while True:
@@ -217,12 +230,12 @@ def registrasi(): # Menu registrasi
         except (Exception,Error) as error:
             print(error)
 
-def login_user():
+def login_user(): #Engga kepake
     username= input("masukkan username ")
     passw= passbintang("masukkan password ")
     return username, passw
 
-def login(username, passw):
+def login(username, passw): #Fitur login
     cursor = connect()
     try :
         cursor.execute(f"SELECT * FROM pengguna")
@@ -237,158 +250,183 @@ def login(username, passw):
     if index is None:
         print("Salah")
 
-def login_refresh(id_user):
-    cursor = connect()
+def login_refresh(id_user): #Refresh data login jika diubah
     try :
+        cursor = connect()
         cursor.execute(f"SELECT * FROM pengguna where id_pengguna = {id_user}")
         records = cursor.fetchone()
-    except psycopg2.Error as Error:
-        print("Salah")
+
+    except psycopg2.Error as error:
+        print("Salah", error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
+
     return records
 
 
-def ShowAkun():
+def ShowAkun(): #Lihat data diri sendiri
     print("Nama: ",data_user[2])
     print("Username: ",data_user[3])
     print("Password: ",data_user[4])
     print("No. telepon :",data_user[5])
     print("Email: ",data_user[6])
 
-def ShowAkunAll():
+def ShowAkunAll():#Engga dipake
     # cursor= connect()
     # cursor.execute("SELECT * FROM pengguna")
     showtable("pengguna")
 
 def ChangeAkunAll():
-    cursor = connect()
-    showtable("pengguna")
-    id_= inputint("Masukkan id yg ingin diubah ")
-    cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
-    records = cursor.fetchone()
-    # print(records)
-    query = "Update pengguna Set "
-    nama = input("Masukkan nama baru, kosongkan jika sama ")
-    count = 0
-    if not nama == "":
-        query = query + f" nama_lengkap = '{nama}'"
-        count += 1
-    username = input ("Masukkan username baru, kosongkan jika sama ")
-    if not username == "":
-        if not count == 0:
-            query = query + ","
-        query = query + f" username = '{username}'"
-        count += 1
-    password = input("Masukkan password baru, kosongkan jika sama ")
-    if not password == "":
-        if not count == 0:
-            query = query + ","
-        query = query + f" passwords = '{password}'"
-        count += 1
-    no = input("Masukkan nomer telepon baru, kosongkan jika sama ")
-    if not no == "":
-        if not count == 0:
-            query = query + ","
-        count += 1
-        query = query + f" no_telpon = '{no}'"
-    email = input("Masukkan email baru, kosongkan jika sama ")
-    if not email == "":
-        if not count == 0:
-            query = query + ","
-        count += 1
-        query = query + f" email = '{email}'"
-    query = query + f" WHERE id_pengguna = {records[0]}"
-    if count != 0:
-        cursor.execute(query)
-        cursor.connection.commit()
-        clear()
-        print(f"{count} data berhasil diubah...")
-        getch_()
-    else:
-        clear()
-        print("Data tidak jadi diubah")
-        getch_()
-
-def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan query nanti
-    clear()
-    ShowAkun()
-    print("")
-    count = 0
-    cursor = connect()
-    cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
-    records = cursor.fetchone()
-    query = "Update pengguna Set "
-    while True:
+    try:
+        cursor = connect()
+        Showtablewithout("pengguna")
+        id_= inputint("Masukkan id yg ingin diubah ")
+        cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
+        records = cursor.fetchone()
+        # print(records)
+        query = "Update pengguna Set "
         nama = input("Masukkan nama baru, kosongkan jika sama ")
+        count = 0
         if not nama == "":
-            if len(nama) > 3 and len(nama) < 33:
-                query = query + f" nama_lengkap = '{nama}'"
-                count += 1
-                break
-            else:
-                continue
-        else:
-            break
-    while True:
+            query = query + f" nama_lengkap = '{nama}'"
+            count += 1
         username = input ("Masukkan username baru, kosongkan jika sama ")
         if not username == "":
-            if len(username) > 3 and len(username) < 17:
-                if not count == 0:
-                    query = query + ","
-                query = query + f" username = '{username}'"
-                count += 1
-                break
-        else:
-            break
-    while True:
+            if not count == 0:
+                query = query + ","
+            query = query + f" username = '{username}'"
+            count += 1
         password = input("Masukkan password baru, kosongkan jika sama ")
         if not password == "":
-            if len(password) > 3 and len(password) < 17:
-                if not count == 0:
-                    query = query + ","
-                query = query + f" passwords = '{password}'"
-                count += 1
-                break
-        else:
-            break
-    while True:
+            if not count == 0:
+                query = query + ","
+            query = query + f" passwords = '{password}'"
+            count += 1
         no = input("Masukkan nomer telepon baru, kosongkan jika sama ")
         if not no == "":
-            if all(x.isdigit() or x in "+-"  for x in no):
-                if not count == 0:
-                    query = query + ","
-                count += 1
-                query = query + f" no_telpon = '{no}'"
-                break
-            else:
-                print("Maukkan input yang vaild")
-                continue
-        else:
-            break
-    while True:
+            if not count == 0:
+                query = query + ","
+            count += 1
+            query = query + f" no_telpon = '{no}'"
         email = input("Masukkan email baru, kosongkan jika sama ")
         if not email == "":
-            if email and "@" in email and "." in email:
-                if not count == 0:
-                    query = query + ","
-                count += 1
-                query = query + f" email = '{email}'"
-                break
-            else:
-                continue
+            if not count == 0:
+                query = query + ","
+            count += 1
+            query = query + f" email = '{email}'"
+        query = query + f" WHERE id_pengguna = {records[0]}"
+        if count != 0:
+            cursor.execute(query)
+            cursor.connection.commit()
+            clear()
+            print(f"{count} data berhasil diubah...")
+            getch_()
         else:
-            break
-                
-    query = query + f" WHERE id_pengguna = {records[0]}"
-    if count != 0:
-        cursor.execute(query)
-        cursor.connection.commit()
+            clear()
+            print("Data tidak jadi diubah")
+            getch_()
+
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
+
+def ChangeAkunSelf(id_):## jumlah karakter atau len harus disesuaikan dengan query nanti
+    try:
         clear()
-        print(f"{count} data berhasil diubah...")
-        getch_()
-    else:
-        clear()
-        print("Data tidak jadi diubah")
-        getch_()
+        ShowAkun()
+        print("")
+        count = 0
+        cursor = connect()
+        cursor.execute(f"Select * from pengguna where id_pengguna = {id_}")
+        records = cursor.fetchone()
+        query = "Update pengguna Set "
+        while True:
+            nama = input("Masukkan nama baru, kosongkan jika sama ")
+            if not nama == "":
+                if len(nama) > 3 and len(nama) < 33:
+                    query = query + f" nama_lengkap = '{nama}'"
+                    count += 1
+                    break
+                else:
+                    continue
+            else:
+                break
+        while True:
+            username = input ("Masukkan username baru, kosongkan jika sama ")
+            if not username == "":
+                if len(username) > 3 and len(username) < 17:
+                    if not count == 0:
+                        query = query + ","
+                    query = query + f" username = '{username}'"
+                    count += 1
+                    break
+            else:
+                break
+        while True:
+            password = input("Masukkan password baru, kosongkan jika sama ")
+            if not password == "":
+                if len(password) > 3 and len(password) < 17:
+                    if not count == 0:
+                        query = query + ","
+                    query = query + f" passwords = '{password}'"
+                    count += 1
+                    break
+            else:
+                break
+        while True:
+            no = input("Masukkan nomer telepon baru, kosongkan jika sama ")
+            if not no == "":
+                if all(x.isdigit() or x in "+-"  for x in no):
+                    if not count == 0:
+                        query = query + ","
+                    count += 1
+                    query = query + f" no_telpon = '{no}'"
+                    break
+                else:
+                    print("Maukkan input yang vaild")
+                    continue
+            else:
+                break
+        while True:
+            email = input("Masukkan email baru, kosongkan jika sama ")
+            if not email == "":
+                if email and "@" in email and "." in email:
+                    if not count == 0:
+                        query = query + ","
+                    count += 1
+                    query = query + f" email = '{email}'"
+                    break
+                else:
+                    continue
+            else:
+                break
+                    
+        query = query + f" WHERE id_pengguna = {records[0]}"
+        if count != 0:
+            cursor.execute(query)
+            cursor.connection.commit()
+            clear()
+            print(f"{count} data berhasil diubah...")
+            getch_()
+        else:
+            clear()
+            print("Data tidak jadi diubah")
+            getch_()
+
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
 
 def TampilkanPesanan(id,mode=1):
     try:
@@ -422,7 +460,7 @@ def TampilkanPesanan(id,mode=1):
         # print(mytable)
 
     except (Exception,Error) as error:
-        print(error)
+        print("Terdapat kesalahan: ", error)
 
     finally:
         if connect():
@@ -439,7 +477,7 @@ def HapusPesanan(id): # Engga kepake
         print("Data berhasil dihapus")
 
     except (Exception,Error) as error:
-        print(error)
+        print("Terdapat kesalahan: ", error)
 
     finally:
         if cursor.connection:
@@ -677,145 +715,167 @@ def BuatPesanan(id):
         
         return
 
-    except (Exception,Error) as error:
-        print(error)
-        return
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
 
 
 def Katalog():
-    # clear()
-    Showtablewithout('katalog')
-    cursor = connect()
-    pilihan = input("Enter jika ingin keluar, masukkan sembarang jika ingin mengubah")
-    if pilihan == "":
-        return
-    clear()
-    Showtablewithout('katalog')
-    cursor.execute("SELECT * FROM katalog")
-    record = cursor.fetchall()
-    while True:
-        id_ = inputint("Masukkan id yang ingin diubah ")
-        if any(id_ == x[0] for x in record):
-            cursor.execute(f"SELECT * FROM katalog where id_katalog = '{id_}'")
-            katalog = cursor.fetchone()
-            break
-        elif pilihan == "":
+    try:
+        # clear()
+        Showtablewithout('katalog')
+        cursor = connect()
+        pilihan = input("Enter jika ingin keluar, masukkan sembarang jika ingin mengubah")
+        if pilihan == "":
             return
-    query = "UPDATE katalog SET "
-    count = 0
-    while True:
-        nama = input("Masukkan nama baru, kosongkan jika sama ")
-        if not nama == "":
-            query = query + f" nama_menu = '{nama}'"
-            count += 1
-            break
-        else:
-            break
-    while True:
-        nambahkurang = input("1. Nambah \n2. Kurang \nPilih nambah atau kurang stok, enter jika ingin sama")
-        if not nambahkurang == "":
-            stok = input ("Masukkan stok, kosongkan jika sama ")
-            if nambahkurang.isdigit() :
-                nambahkurang = int(nambahkurang)
-                if nambahkurang == 1:
-                    jumlahstok = katalog[2] + stok
-                elif nambahkurang == 2:
-                    jumlahstok = katalog[2] - stok
-                if not count == 0:
-                    query = query + ","
-                query = query + f" stok_menu = '{jumlahstok}'"
+        clear()
+        Showtablewithout('katalog')
+        cursor.execute("SELECT * FROM katalog")
+        record = cursor.fetchall()
+        while True:
+            id_ = inputint("Masukkan id yang ingin diubah ")
+            if any(id_ == x[0] for x in record):
+                cursor.execute(f"SELECT * FROM katalog where id_katalog = '{id_}'")
+                katalog = cursor.fetchone()
+                break
+            elif pilihan == "":
+                return
+        query = "UPDATE katalog SET "
+        count = 0
+        while True:
+            nama = input("Masukkan nama baru, kosongkan jika sama ")
+            if not nama == "":
+                query = query + f" nama_menu = '{nama}'"
                 count += 1
                 break
             else:
                 break
+        while True:
+            nambahkurang = input("1. Nambah \n2. Kurang \nPilih nambah atau kurang stok, enter jika ingin sama")
+            if not nambahkurang == "":
+                stok = input ("Masukkan stok, kosongkan jika sama ")
+                if nambahkurang.isdigit() :
+                    nambahkurang = int(nambahkurang)
+                    if nambahkurang == 1:
+                        jumlahstok = katalog[2] + stok
+                    elif nambahkurang == 2:
+                        jumlahstok = katalog[2] - stok
+                    if not count == 0:
+                        query = query + ","
+                    query = query + f" stok_menu = '{jumlahstok}'"
+                    count += 1
+                    break
+                else:
+                    break
+            else:
+                break
+        while True:
+            harga = input("Masukkan harga baru, kosongkan jika sama ")
+            if not harga == "":
+                if not count == 0:
+                    query = query + ","
+                query = query + f" harga_menu = '{harga}'"
+                count += 1
+                break
+            else:
+                break
+        while True:
+            deskripsi = input("Masukkan deskripsi baru, kosongkan jika sama ")
+            if not deskripsi == "":
+                if not count == 0:
+                    query = query + ","
+                query = query + f" deskripsi_menu = '{deskripsi}'"
+                count += 1
+                break
+            else:
+                break
+        while True:
+            hapus = input("Apakah data dihapus,enter jika tidak, isi jika iya ")
+            if not hapus == "":
+                if not count == 0:
+                    query = query + ","
+                query = query + f" is_delete = '1'"
+                count += 1
+                break
+            else:
+                if not count == 0:
+                    query = query + ","
+                query = query + f" is_delete = '0'"
+                count += 1
+                break
+                    
+        query = query + f" WHERE id_katalog = {id_}"
+        if count != 0:
+            cursor.execute(query)
+            cursor.connection.commit()
+            clear()
+            print(f"{count} data berhasil diubah...")
+            getch_()
         else:
-            break
-    while True:
-        harga = input("Masukkan harga baru, kosongkan jika sama ")
-        if not harga == "":
-            if not count == 0:
-                query = query + ","
-            query = query + f" harga_menu = '{harga}'"
-            count += 1
-            break
-        else:
-            break
-    while True:
-        deskripsi = input("Masukkan deskripsi baru, kosongkan jika sama ")
-        if not deskripsi == "":
-            if not count == 0:
-                query = query + ","
-            query = query + f" deskripsi_menu = '{deskripsi}'"
-            count += 1
-            break
-        else:
-            break
-    while True:
-        hapus = input("Apakah data dihapus,enter jika tidak, isi jika iya ")
-        if not hapus == "":
-            if not count == 0:
-                query = query + ","
-            query = query + f" is_delete = '1'"
-            count += 1
-            break
-        else:
-            if not count == 0:
-                query = query + ","
-            query = query + f" is_delete = '0'"
-            count += 1
-            break
-                
-    query = query + f" WHERE id_katalog = {id_}"
-    if count != 0:
-        cursor.execute(query)
-        cursor.connection.commit()
-        clear()
-        print(f"{count} data berhasil diubah...")
-        getch_()
-    else:
-        clear()
-        print("Data tidak jadi diubah")
-        getch_()
+            clear()
+            print("Data tidak jadi diubah")
+            getch_()
     
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
 
-def Laporan():
-    cursor = connect()
-    temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
-    clear()
-    if temp == 1:
-        cursor.execute(f"SELECT COUNT(p.id_pesanan) AS \"Jumlah transaksi\", "
-    "SUM(t.nominal) "
-    "FROM pesanan p JOIN transaksi t "
-    "ON p.id_transaksi = t.id_transaksi"
-        )
-        cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-MM') as Bulan, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
-        record = cursor.fetchall()
-        columns = [x[0] for x in cursor.description]
-        mytable = PrettyTable(columns)
-        for y in record:
-            mytable.add_row(y)
-        print(mytable)
-        getch_()
-    elif temp == 2:
-        cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-\"Q\"Q') as Kuartal, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
-        record = cursor.fetchall()
-        columns = [x[0] for x in cursor.description]
-        mytable = PrettyTable(columns)
-        for y in record:
-            mytable.add_row(y)
-        print(mytable)
-        getch_()
-    if temp == 3:
-        cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY') as \"Tahun\", COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
-        record = cursor.fetchall()
-        columns = [x[0] for x in cursor.description]
-        mytable = PrettyTable(columns)
-        for y in record:
-            mytable.add_row(y)
-        print(mytable)
-        getch_()
-    elif temp == 0:
-        return
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
+
+
+def Laporann(): #Engga kepake
+    try:
+        cursor = connect()
+        temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
+        clear()
+        if temp == 1:
+            cursor.execute(f"SELECT COUNT(p.id_pesanan) AS \"Jumlah transaksi\", "
+        "SUM(t.nominal) "
+        "FROM pesanan p JOIN transaksi t "
+        "ON p.id_transaksi = t.id_transaksi"
+            )
+            cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-MM') as Bulan, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
+            record = cursor.fetchall()
+            columns = [x[0] for x in cursor.description]
+            mytable = PrettyTable(columns)
+            for y in record:
+                mytable.add_row(y)
+            print(mytable)
+            getch_()
+        elif temp == 2:
+            cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-\"Q\"Q') as Kuartal, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
+            record = cursor.fetchall()
+            columns = [x[0] for x in cursor.description]
+            mytable = PrettyTable(columns)
+            for y in record:
+                mytable.add_row(y)
+            print(mytable)
+            getch_()
+        if temp == 3:
+            cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY') as \"Tahun\", COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
+            record = cursor.fetchall()
+            columns = [x[0] for x in cursor.description]
+            mytable = PrettyTable(columns)
+            for y in record:
+                mytable.add_row(y)
+            print(mytable)
+            getch_()
+        elif temp == 0:
+            return
+        
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
 
 def statusPesanan(id_pengguna):
     clear()
@@ -845,14 +905,14 @@ def statusPesanan(id_pengguna):
             if pilih =="":
                 break
     except(Exception, Error) as error:
-        print("Terdapat kesalahan:", error)
+        print("Terdapat kesalahan: ", error)
 
     finally:
         if cursor.connection:
             cursor.close()
             cursor.connection.close()
 
-def ubahStatuspesanan(id_pesanan = None):
+def UbahStatusPesanan(id_pesanan = None):
    
     try:
         clear()
@@ -934,107 +994,116 @@ def ubahStatuspesanan(id_pesanan = None):
         
             
     except(Exception, Error) as error:
-        print("Terdapat kesalahan:", error)
+        print("Terdapat kesalahan: ", error)
 
     finally:
         if cursor.connection:
             cursor.close()
             cursor.connection.close()
 
-
-
-def Laporan():  # Work in Progress 
-    cursor = connect()
-    temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
+def Laporan():  # Engga kepake
+    temp = select("Laporan per bulan \nLaporan per kuartal \nLaporan per tahun")
     if temp == 1:
-        tahun = inputint("Masukkan tahun: ")
+        tahun = input("Masukkan tahun, kosongkan untuk menampilkan semua: ")
         laporan_bulanan(tahun)
         getch_()
     elif temp == 2:
-        tahun = inputint("Masukkan tahun: ")
+        tahun = input("Masukkan tahun: ")
         laporan_quartal(tahun)
         getch_()
     elif temp == 3:
         laporan_tahunan()
         getch_()
-    else:
-        print("Pilihan tidak valid")
-        getch_()
+
 
 def laporan_bulanan(tahun):
     cursor = connect()
     try:
-        query = f"""
-            SELECT 
-                EXTRACT(MONTH FROM p.tanggal_pesanan) AS bulan,
-                SUM(t.nominal) AS total_penjualan,
-                COUNT(p.id_pesanan) AS jumlah_transaksi
-            FROM pesanan p
-            JOIN transaksi t ON p.id_transaksi = t.id_transaksi
-            WHERE EXTRACT(YEAR FROM p.tanggal_pesanan) = {tahun}
-            AND p.is_delete = '0'
-            GROUP BY 1
-            ORDER BY 1;
-        """
+        if tahun :
+            query = f"""
+                SELECT 
+                    EXTRACT(MONTH FROM p.tanggal_pesanan) AS "Bulan",
+                    SUM(t.nominal) AS "Total Penjualan",
+                    COUNT(p.id_pesanan) AS "Jumlah Transaksi"
+                FROM pesanan p
+                JOIN transaksi t ON p.id_transaksi = t.id_transaksi
+                WHERE EXTRACT(YEAR FROM p.tanggal_pesanan) = {tahun}
+                AND p.is_delete = '0'
+                GROUP BY 1
+                ORDER BY 1;
+            """
+        elif not tahun :
+            query = (f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY') as \"Tahun\",TO_CHAR(p.tanggal_pesanan, 'mm') as \"Bulan\", COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1,2 ORDER BY 1 desc,2 desc")
         cursor.execute(query)
         rows = cursor.fetchall()
-    except Exception as e:
-        print("Error saat mengambil data:", e)
-        return
 
-    if not rows:
-        print(f"Tidak ada data untuk tahun {tahun}")
-        return
+        if not rows:
+            print(f"Tidak ada data untuk tahun {tahun}")
+            return
+        
+        columns = [x[0] for x in cursor.description]
+        table = PrettyTable(columns)
+        for r in rows:
+            table.add_row(r)
 
-    table = PrettyTable()
-    table.field_names = ["Bulan", "Total Penjualan", "Jumlah Transaksi"]
-    for r in rows:
-        table.add_row(r)
+        print("\n=== LAPORAN PENJUALAN BULANAN ===")
+        print(table)
 
-    print("\n=== LAPORAN PENJUALAN BULANAN ===")
-    print(table)
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
 
 def laporan_quartal(tahun):
     cursor = connect()
     try:
-        query = f"""
-            SELECT
-                CEILING((EXTRACT(MONTH FROM p.tanggal_pesanan)::numeric) / 3) AS kwartal,
-                SUM(t.nominal) AS total_penjualan,
-                COUNT(p.id_pesanan) AS jumlah_transaksi
-            FROM pesanan p
-            JOIN transaksi t ON p.id_transaksi = t.id_transaksi
-            WHERE EXTRACT(YEAR FROM p.tanggal_pesanan) = {tahun}
-            AND p.is_delete = '0'
-            GROUP BY 1
-            ORDER BY 1;
-        """
+        if tahun:
+            query = f"""
+                SELECT
+                    CEILING((EXTRACT(MONTH FROM p.tanggal_pesanan)::numeric) / 3) AS "Kuartal",
+                    SUM(t.nominal) AS "Total Penjualan",
+                    COUNT(p.id_pesanan) AS "Jumlah Transaksi"
+                FROM pesanan p
+                JOIN transaksi t ON p.id_transaksi = t.id_transaksi
+                WHERE EXTRACT(YEAR FROM p.tanggal_pesanan) = {tahun}
+                AND p.is_delete = '0'
+                GROUP BY 1
+                ORDER BY 1;
+            """
+        elif not tahun:
+            query = (f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY') as \"Tahun\", TO_CHAR(p.tanggal_pesanan, '\"Q\"Q') as \"Kuartal\", COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1,2 ORDER BY 1 desc,2 desc")
         cursor.execute(query)
         rows = cursor.fetchall()
-    except Exception as e:
-        print("Error saat mengambil data:", e)
-        return
+        if not rows:
+            print(f"Tidak ada data untuk tahun {tahun}")
+            return
+        columns = [x[0] for x in cursor.description]
+        table = PrettyTable(columns)
+        for r in rows:
+            table.add_row(r)
 
-    if not rows:
-        print(f"Tidak ada data untuk tahun {tahun}")
-        return
+        print("\n=== LAPORAN PENJUALAN QUARTAL ===")
+        print(table)
 
-    table = PrettyTable()
-    table.field_names = ["Kwartal", "Total Penjualan", "Jumlah Transaksi"]
-    for r in rows:
-        table.add_row(r)
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
 
-    print("\n=== LAPORAN PENJUALAN QUARTAL ===")
-    print(table)
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
 
 def laporan_tahunan():
     cursor = connect()
     try:
         query = """
             SELECT
-                EXTRACT(YEAR FROM p.tanggal_pesanan) AS tahun,
-                SUM(t.nominal) AS total_penjualan,
-                COUNT(p.id_pesanan) AS jumlah_transaksi
+                EXTRACT(YEAR FROM p.tanggal_pesanan) AS "Tahun",
+                SUM(t.nominal) AS "Total penjualan",
+                COUNT(p.id_pesanan) AS "Jumlah Transaksi"
             FROM pesanan p
             JOIN transaksi t ON p.id_transaksi = t.id_transaksi
             WHERE p.is_delete = '0'
@@ -1043,21 +1112,26 @@ def laporan_tahunan():
         """
         cursor.execute(query)
         rows = cursor.fetchall()
-    except Exception as e:
-        print("Error saat mengambil data:", e)
-        return
 
-    if not rows:
-        print("Tidak ada data tahunan")
-        return
+        if not rows:
+            print("Tidak ada data tahunan")
+            return
+        
+        columns = [x[0] for x in cursor.description]
+        table = PrettyTable(columns)
+        for r in rows:
+            table.add_row(r)
 
-    table = PrettyTable()
-    table.field_names = ["Tahun", "Total Penjualan", "Jumlah Transaksi"]
-    for r in rows:
-        table.add_row(r)
+        print("\n=== LAPORAN PENJUALAN TAHUNAN ===")
+        print(table)
 
-    print("\n=== LAPORAN PENJUALAN TAHUNAN ===")
-    print(table)
+    except(Exception,Error) as error:
+        print("Terdapat kesalahan: ", error)
+
+    finally:
+        if connect():
+            cursor.connection.close()
+            cursor.close()
 
 def Pembayaran(id): #Engga kepake
     clear()
@@ -1118,9 +1192,11 @@ def Pembayaran(id): #Engga kepake
     id_transaksi = record[0] + 1
     cursor.execute(f"INSERT INTO transaksi(id_transaksi, status_transaksi, is_delete, id_metode_transaksi, id_pesanan) Values ({id_transaksi}, 'belum membayar', '0', '{metode}', {id_})")
     if metode == 2:
-        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'pending', '0', '{id}', '{record[0]}','{id_alamat}')")
+        # cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'pending', '0', '{id}', '{record[0]}','{id_alamat}')")
+        pass
     elif metode == 1:
-        cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'diproses', '0', '{id}', '{record[0]}','{id_alamat}')")
+        # cursor.execute(f"INSERT INTO pesanan(id_pesanan,tanggal_pesanan, status_pesanan, is_delete, id_pengguna, id_transaksi, id_alamat_pengiriman) VALUES ('{id_}',now() :: DATE, 'diproses', '0', '{id}', '{record[0]}','{id_alamat}')")
+        pass
 
     
     cursor.execute(f"SELECT jumlah_detail_pesanan*harga_satuan FROM detail_pesanan where id_pesanan = {id_}")
@@ -1177,7 +1253,8 @@ while True:
         registrasi()
     elif pilihanmenu == 2:  
         clear()
-        username,password = login_user()
+        username = input("masukkan username ")
+        password = passbintang("masukkan password ")
         data_user = login(username, password)
         # print(data_user)
         if not data_user is None:
@@ -1252,29 +1329,44 @@ Log out / keluar
 """)
             # temp =inputint("Masukkan angka ")
             if temp == 1:
-                print("1. Data user\n" 
-                "2. Data admin")
-                temp = inputint("Masukkan angka ")
+                temp = select("Data user \nData admin")
                 if temp == 1: #semua data
-                    ShowAkunAll()
+                    showtable("pengguna")
                     temp= input("Tekan enter untuk keluar atau isi dengan sembarang huruf untuk mengedit ")
                     clear()
+
                     if temp == "":
                         pass
                     else :
                         ChangeAkunAll()
+
                 elif temp == 2: #Data sendiri (admin)
                     clear()
                     ShowAkun()
                     temp = input("Tekan enter untuk keluar atau isi dengan sembarang huruf untuk mengedit ")
                     if temp != "":
                         ChangeAkunSelf(data_user[0])
+
             elif temp == 2:
-                Katalog()
+                temp_ = select("Laporan per bulan \nLaporan per kuartal \nLaporan per tahun")
+                if temp_ == 1:
+                    tahun = input("Masukkan tahun, kosongkan untuk menampilkan semua: ")
+                    laporan_bulanan(tahun)
+                    getch_()
+                elif temp_ == 2:
+                    tahun = input("Masukkan tahun: ")
+                    laporan_quartal(tahun)
+                    getch_()
+                elif temp_ == 3:
+                    laporan_tahunan()
+                    getch_()
+
             elif temp == 3 :
-                ubahStatuspesanan()
+                UbahStatusPesanan()
+
             elif temp == 4 :
                 Laporan()
+
             elif temp == 5 :
                 clear()
                 temp = input("Apakah kamu yakin ingin keluar?\nketik y jika yakin ingin keluar ")
@@ -1286,17 +1378,3 @@ Log out / keluar
         print(error)
         print("Error 123")
         break
-    # finally:
-    #     if cursor.connection():
-    #         cursor.close()
-    #         cursor.connectio.closen()
-
-
-# # if connection:
-# #     cursor.close()
-# #     connection.close()
-
-
-
-# showtable("pengguna")
-# # ChangeAkunAll()
