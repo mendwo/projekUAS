@@ -755,7 +755,6 @@ def Laporan():#Work in Progress
             mytable.add_row(y)
         print(mytable)
 
-# ...existing code...
 def Laporan():  # Work in Progress 
     cursor = connect()
     temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
@@ -774,7 +773,6 @@ def Laporan():  # Work in Progress
         print("Pilihan tidak valid")
         getch_()
 
-# ...existing code...
 def laporan_bulanan(tahun):
     cursor = connect()
     try:
@@ -872,7 +870,6 @@ def laporan_tahunan():
 
     print("\n=== LAPORAN PENJUALAN TAHUNAN ===")
     print(table)
-# ...existing code...
 
 def Pembayaran(id): #Engga kepake
     clear()
