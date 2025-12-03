@@ -847,16 +847,37 @@ def statusPesanan(id_pengguna):
             cursor.close()
             cursor.connection.close()
 
-def ubahStatuspesanan(id_pesanan):
+def ubahStatuspesanan(id_pesanan = None):
+   
     try:
+        clear()
+        Showtablewithout('pesanan') 
         cursor = connect() #mecoba terhubung
-        cursor.execute(f"SELECT status_pesanan FROM pesanan WHERE id_pesanan = {id_pesanan} AND is_delete = '0")
-        record = cursor.fetchone()
+
+        pilih = input("Enter untuk keluar, ketik sembarang untuk mengubah:")
+        if pilih == "":
+            return
+        
+        clear()
+        Showtablewithout('pesanan')
+        cursor.execute("SELECT * FROM pesanan WHERE is_delete = '0' ")
+        record = cursor.fetchall() 
+
         while True:
-            if record is None:
+            id_pesanan = inputint("Masukkan ID pesanan yang ingin diubah:")
+            
+            ada = False
+            for a in record:
+                if id_pesanan == a[0]:
+                     ada = True
+                     break
+            if not ada :
                 print("Maaf, pesanan tidak ditemukan.")
-                break
-            print(f"status pesanan saat ini: {record[0]}")
+                continue
+            ddl = "UPDATE pesanan SET"
+            count = 0
+            
+
             print("pilih status baru:")
             print("1. Diproses")
             print("2. Dikirim")
@@ -873,20 +894,40 @@ def ubahStatuspesanan(id_pesanan):
             elif piltus == "4":
                 staru = "dibatalkan"
             else:
-                print("pilihan tidak valid")
-                return
-            
-            
-            # memperbaharui ke database
+               print("pilihan tidak valid")
+               continue
+
             cursor.execute("""
-                        UPDATE pesanan SET status_pesanan = %s, tanggal_pengiriman = now()::DATE
-                        WHERE id_pesanan = %s""", (staru, id_pesanan))
+                UPDATE pesanan
+                SET status_pesanan = %s, tanggal_pengiriman = now()::DATE
+                WHERE id_pesanan = %s
+            """, (staru, id_pesanan))
             cursor.connection.commit()
-            print(f"Status pesanan {id_pesanan} berhasil diperbaharuhi menjadi '{staru}.")
+
+            clear()
+            print(f"Status pesanan {id_pesanan} berhasil diubah menjadi '{staru}'")
+            getch_()
+            break 
+
+            # if staru:
+            #     ddl += f" status_pesanan = '{staru}', tanggal_pengiriman = now()::DATE "
+            #     count += 1
+
+            # ddl += f" WHERE id_pesanan = {id_pesanan}"
+            # if count != 0:
+            #     cursor.execute(ddl)
+            #     cursor.connection.commit()
+            #     clear()
+            #     print(f"status_pesanan {id_pesanan} berhasil diubah menjadi '{staru}'")
+            #     getch_()
+            # else:
+            #     clear()
+            #     print("status tidak berubah")
+            #     getch_()
+
             
-            pilih = input("tekan Enter untu keluar")
-            if pilih =="":
-                break
+        
+            
     except(Exception, Error) as error:
         print("Terdapat kesalahan:", error)
 
@@ -894,6 +935,8 @@ def ubahStatuspesanan(id_pesanan):
         if cursor.connection:
             cursor.close()
             cursor.connection.close()
+
+
 
 
 def Pembayaran(id): #Engga kepake
