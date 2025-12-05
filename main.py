@@ -755,55 +755,6 @@ def Katalog():
             cursor.connection.close()
             cursor.close()
 
-
-def Laporann(): #Engga kepake
-    try:
-        cursor = connect()
-        temp = inputint("1. Laporan per bulan \n2. Laporan per quartal \n3. Laporan per tahun \n")
-        clear()
-        if temp == 1:
-            cursor.execute(f"SELECT COUNT(p.id_pesanan) AS \"Jumlah transaksi\", "
-        "SUM(t.nominal) "
-        "FROM pesanan p JOIN transaksi t "
-        "ON p.id_transaksi = t.id_transaksi"
-            )
-            cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-MM') as Bulan, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
-            record = cursor.fetchall()
-            columns = [x[0] for x in cursor.description]
-            mytable = PrettyTable(columns)
-            for y in record:
-                mytable.add_row(y)
-            print(mytable)
-            getch_()
-        elif temp == 2:
-            cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY-\"Q\"Q') as Kuartal, COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
-            record = cursor.fetchall()
-            columns = [x[0] for x in cursor.description]
-            mytable = PrettyTable(columns)
-            for y in record:
-                mytable.add_row(y)
-            print(mytable)
-            getch_()
-        if temp == 3:
-            cursor.execute(f"SELECT TO_CHAR(p.tanggal_pesanan, 'YYYY') as \"Tahun\", COUNT(p.id_pesanan) as \"Jumlah pesanan\", SUM(t.nominal) as \"Jumlah nominal\" from pesanan p, transaksi t where p.id_transaksi = t.id_transaksi GROUP BY 1 ORDER BY 1 desc")
-            record = cursor.fetchall()
-            columns = [x[0] for x in cursor.description]
-            mytable = PrettyTable(columns)
-            for y in record:
-                mytable.add_row(y)
-            print(mytable)
-            getch_()
-        elif temp == 0:
-            return
-        
-    except(Exception,Error) as error:
-        print("Terdapat kesalahan: ", error)
-
-    finally:
-        if connect():
-            cursor.connection.close()
-            cursor.close()
-
 def statusPesanan(id_pengguna):
     clear()
     try:
