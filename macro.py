@@ -86,22 +86,12 @@ def select(text,header=""):
             if ord(c) != 224:
                 listt.append(ord(c))
                 break
-            # print (ord(c))
         clear()
-        # print (listt)
-    # temp = []
-    # c = getch()
-    # temp.append(c)
-    # print (temp)
-    # if 
-
 
         if listt[1] == 80:
             target += 1
-            # print("kebawah")
         elif listt[1] == 72:
             target -= 1
-            # print("keatas")
         elif listt[1] == 13 or listt[1] == 27:
             break
 
@@ -120,8 +110,6 @@ def select(text,header=""):
                 print("  ",end="")
             i += 1
             print (x)
-        # print (target)
-        # print (type(c))
     return target+1
 
 log = []
