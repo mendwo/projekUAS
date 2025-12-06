@@ -8,9 +8,9 @@ from connectsql import *
 
 def showtable(entity): #Tampilkan menu dengan fitur order jika diperlukan
     try:
-        querydefault = f"SELECT * FROM {entity} ORDER BY id_{entity} asc"
+        querydefault = f"SELECT * FROM {entity} "
+        query = f"SELECT * FROM {entity} ORDER BY id_{entity} asc"
         ordercount = 0
-        query = querydefault
         orderlist = []
         orderlistasc = []
         
